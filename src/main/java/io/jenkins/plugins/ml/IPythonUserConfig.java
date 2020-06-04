@@ -24,31 +24,31 @@
 
 package io.jenkins.plugins.ml;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-public class IPythonKernelInterpreterTest {
-
-
-    private KernelInterpreter kernelInterpreter;
-    private IPythonUserConfig userConfig;
-    @Before
-    public void setup(){
-        userConfig = new IPythonUserConfig("127.0.0.1",1000,3);
-        kernelInterpreter = new IPythonKernelInterpreter(userConfig);
-    }
+public class IPythonUserConfig {
+    private final String serverGatewayAddress;
+    private final long iPythonLaunchTimeout;
+    private final long maxResult;
 
     /**
-     * ToString test for {@link IPythonKernelInterpreter}
+     * Constructor for configuration
      */
 
-    @Test
-    public void testToString() {
-        if(kernelInterpreter instanceof IPythonKernelInterpreter){
-            Assert.assertEquals("IPython is not properly initiated","IPython Interpreter",kernelInterpreter.toString());
-        }
-        Assert.assertNotNull("Interpreter is not up",kernelInterpreter);
+    public IPythonUserConfig(String serverGatewayAddress, long iPythonLaunchTimeout, long maxResult) {
+        this.serverGatewayAddress = serverGatewayAddress;
+        this.iPythonLaunchTimeout = iPythonLaunchTimeout;
+        this.maxResult = maxResult;
+    }
+
+    public String getServerGatewayAddress() {
+        return serverGatewayAddress;
+    }
+
+    public long getIPythonLaunchTimeout() {
+        return iPythonLaunchTimeout;
+    }
+
+    public long getMaxResult() {
+        return maxResult;
     }
 
 }

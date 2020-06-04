@@ -24,31 +24,24 @@
 
 package io.jenkins.plugins.ml;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.zeppelin.interpreter.InterpreterException;
 
-public class IPythonKernelInterpreterTest {
+import java.io.Closeable;
+import java.io.IOException;
 
+/**
+ * Abstract class that can be subclassed for individual interpreter management
+ */
 
-    private KernelInterpreter kernelInterpreter;
-    private IPythonUserConfig userConfig;
-    @Before
-    public void setup(){
-        userConfig = new IPythonUserConfig("127.0.0.1",1000,3);
-        kernelInterpreter = new IPythonKernelInterpreter(userConfig);
+public abstract class InterpreterManager implements Closeable {
+
+    abstract KernelInterpreter createInterpreter();
+    abstract void initiateInterpreter() throws InterpreterException;
+    abstract void closeInterpreter();
+    abstract boolean testConnection() throws IOException, InterpreterException;
+
+    protected String invokeInterpreter(String code) throws IOException, InterpreterException {
+        KernelInterpreter kernelInterpreter = createInterpreter();
+        return kernelInterpreter.interpretCode(code).toString();
     }
-
-    /**
-     * ToString test for {@link IPythonKernelInterpreter}
-     */
-
-    @Test
-    public void testToString() {
-        if(kernelInterpreter instanceof IPythonKernelInterpreter){
-            Assert.assertEquals("IPython is not properly initiated","IPython Interpreter",kernelInterpreter.toString());
-        }
-        Assert.assertNotNull("Interpreter is not up",kernelInterpreter);
-    }
-
 }

@@ -24,7 +24,45 @@
 
 package io.jenkins.plugins.ml;
 
-public class IPythonKernelInterpreter implements KernelInterpreter {
+import org.apache.zeppelin.interpreter.*;
+import org.apache.zeppelin.python.IPythonInterpreter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.Properties;
+
+public class IPythonKernelInterpreter implements KernelInterpreter  {
+
+    /**
+     * Our logger
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(IPythonKernelInterpreter.class);
+    private final String serverGatewayAddress;
+    private final long iPythonLaunchTimeout;
+    private final long maxResult;
+
+    private LazyOpenInterpreter interpreter;
+    private InterpreterResultMessage interpreterResultMessage ;
+
+    /**
+     * @param userConfig - user's configuration including server address etc.
+     */
+    public IPythonKernelInterpreter(IPythonUserConfig userConfig) {
+        this.serverGatewayAddress = userConfig.getServerGatewayAddress();
+        this.iPythonLaunchTimeout = userConfig.getIPythonLaunchTimeout();
+        this.maxResult = userConfig.getMaxResult();
+
+        // properties for the interpreter
+        Properties properties = new Properties();
+        properties.setProperty("zeppelin.python.maxResult", String.valueOf(maxResult));
+        properties.setProperty("zeppelin.python.gatewayserver_address", serverGatewayAddress);
+        properties.setProperty("zeppelin.ipython.launch.timeout", String.valueOf(iPythonLaunchTimeout));
+
+        // Initiate a Lazy interpreter
+        interpreter = new LazyOpenInterpreter(new IPythonInterpreter(properties));
+
+    }
 
     /**
      * IPython will be connected and interpreted through the object of this class.
@@ -32,9 +70,38 @@ public class IPythonKernelInterpreter implements KernelInterpreter {
      * @return the result of the interpreted code
      */
     @Override
-    public String interpretCode(String code) {
-        // TODO implement the interpret function
-        return null;
+    public InterpreterResultMessage interpretCode(String code) throws IOException, InterpreterException {
+        InterpreterResult result;
+        InterpreterContext context = getInterpreterContext();
+        result = interpreter.interpret(code, context);
+        LOGGER.info(result.code().toString());
+        int sizeOfResult = context.out.toInterpreterResultMessage().size();
+
+        // Context output will depend on the code to be interpreted
+        if( sizeOfResult != 0){
+            interpreterResultMessage = context.out.toInterpreterResultMessage().get(0);
+        }else{
+            // Contains non-output lines
+            interpreterResultMessage = new InterpreterResultMessage(InterpreterResult.Type.TEXT,"");
+        }
+        return interpreterResultMessage;
+    }
+
+    public void start(){
+        try {
+            interpreter.open();
+        } catch (InterpreterException e) {
+            LOGGER.error("Unsupported operation");
+        }
+    }
+
+    @Override
+    public void shutdown() {
+        try {
+            interpreter.close();
+        } catch (InterpreterException e) {
+            LOGGER.error("Unsupported operation for shutting down");
+        }
     }
 
     @Override
@@ -42,4 +109,16 @@ public class IPythonKernelInterpreter implements KernelInterpreter {
         return "IPython Interpreter";
     }
 
+    private static InterpreterContext getInterpreterContext() {
+        return new InterpreterContext.Builder().setNoteId("noteID").setParagraphId("paragraphId").setReplName("replName").setInterpreterOut(new InterpreterOutput(null)).build();
+
+    }
+
+    public void setInterpreter(LazyOpenInterpreter interpreter) {
+        this.interpreter = interpreter;
+    }
+
+    LazyOpenInterpreter getInterpreter() {
+        return interpreter;
+    }
 }

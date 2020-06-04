@@ -24,14 +24,19 @@
 
 package io.jenkins.plugins.ml;
 
+import org.apache.zeppelin.interpreter.InterpreterException;
+import org.apache.zeppelin.interpreter.InterpreterResultMessage;
+
+import java.io.IOException;
+
 /**
  * Interface for Kernel Interpreter (Eg: IPython ,R and Julia).
  */
 
 public interface KernelInterpreter {
 
-    String interpretCode(String code);
-
-    // TODO more methods common for interpreters
+    InterpreterResultMessage interpretCode(String code) throws IOException, InterpreterException;
+    void start();
+    void shutdown();
 
 }
