@@ -27,9 +27,59 @@
 = Machine Learning Plugin
 :toc: macro
 
+link:https://ci.jenkins.io/job/Plugins/job/git-plugin/job/master/[image:https://ci.jenkins.io/job/Plugins/job/git-plugin/job/master/badge/icon[Build]]
+link:https://github.com/jenkinsci/git-plugin/graphs/contributors[image:https://img.shields.io/github/contributors/jenkinsci/machine-learning-plugin.svg?color=blue[Contributors]]
+link:https://gitter.im/jenkinsci/git-plugin[image:https://badges.gitter.im/jenkinsci/machine-learning-plugin.svg[Gitter]]
 
-## Overview
+== Overview
 
 The main goal of this project is integrating Machine Learning workflow including Data preprocessing, Model Training, Evaluation and Prediction with Jenkins build tasks. This plugin will be capable of executing code fragments via IPython kernel as currently supported by Jupyter.
 
+=== Using with Python
 
+==== Prerequisites
+
+- Following python libraries are required. If not -> install using,
+
+[source,bash]
+----
+pip install jupyter-client
+pip install ipython
+pip install protobuf
+pip install grpcio
+----
+
+
+=== Contributing to the Plugin
+
+New feature proposals and bug fix proposals should be submitted as https://help.github.com/articles/creating-a-pull-request[GitHub pull requests].
+
+Fork the repository on GitHub, prepare your change on your forked copy, and submit a pull request (see https://github.com/jenkinsci/machine-learning-plugin/pulls[here] for open pull requests).
+
+Before submitting your change please note that:
+
+* tests should be added for any changed code
+* the code formatting should follow the defined standard - see Code Style
+* you use findbugs to see if you haven't introduced any new warnings
+
+
+Tests help us assure that we're delivering a reliable plugin, and that we've communicated our intent to other developers in a way that they can detect when they run tests.
+
+==== Code Style
+
+We try to improve the code quality by conforming to
+https://google.github.io/styleguide/javaguide.html[Google Java styleguide], that is defined in
+https://raw.githubusercontent.com/checkstyle/checkstyle/master/src/main/resources/google_checks.xml[google_checks.xml].
+If you are using an IDE, like IntelliJ IDEA, please:
+
+- install https://plugins.jetbrains.com/plugin/8527-google-java-format[Google Java Format plugin]
+
+or
+
+- install the [Checkstyle plugin](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea)
+- go to **Preferences > Editor > Code Style > Java**, select **Scheme** to *Project*
+- click the Cog icon and import Checkstyle configuration from https://raw.githubusercontent.com/checkstyle/checkstyle/master/src/main/resources/google_checks.xml[google_checks.xml]
+
+Currently the formatting is not automatically checked during the build. However, in the effort to
+improve the quality of the code,  maintainers might ask for proper formatting during the review
+process, so it is better to have it in place sooner than later.
