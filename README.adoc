@@ -27,9 +27,9 @@
 = Machine Learning Plugin
 :toc: macro
 
-link:https://ci.jenkins.io/job/Plugins/job/git-plugin/job/master/[image:https://ci.jenkins.io/job/Plugins/job/git-plugin/job/master/badge/icon[Build]]
-link:https://github.com/jenkinsci/git-plugin/graphs/contributors[image:https://img.shields.io/github/contributors/jenkinsci/machine-learning-plugin.svg?color=blue[Contributors]]
-link:https://gitter.im/jenkinsci/git-plugin[image:https://badges.gitter.im/jenkinsci/machine-learning-plugin.svg[Gitter]]
+link:https://ci.jenkins.io/job/Plugins/job/machine-learning-plugin/job/master/[image:https://ci.jenkins.io/job/Plugins/job/machine-learning-plugin/job/master/badge/icon[Build]]
+link:https://github.com/jenkinsci/machine-learning-plugin/graphs/contributors[image:https://img.shields.io/github/contributors/jenkinsci/machine-learning-plugin.svg?color=blue[Contributors]]
+link:https://gitter.im/jenkinsci/gsoc-machine-learning-project[image:https://badges.gitter.im/jenkinsci/machine-learning-plugin.svg[Gitter]]
 
 == Overview
 
