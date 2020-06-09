@@ -43,6 +43,8 @@ public class Server extends AbstractDescribableImpl<Server> {
     private final long launchTimeout;
     private final long maxResults;
 
+    private static final Pattern pattern = Pattern.compile("^[a-zA-Z0-9_]+$");
+
     @DataBoundConstructor
     public Server(String serverName, String serverAddress, long launchTimeout,long maxResults) {
         this.serverName = serverName;
@@ -88,12 +90,11 @@ public class Server extends AbstractDescribableImpl<Server> {
             if( Util.fixEmptyAndTrim(serverName) == null){
                 return FormValidation.warning("* Required ");
             }
-            String regex = "^[a-zA-Z0-9_]+$";
-            Pattern pattern = Pattern.compile(regex);
+
             if( pattern.matcher(serverName).matches() ){
                 return FormValidation.ok();
             }else{
-                return FormValidation.warning(" Try a another name. Not supported",serverName);
+                return FormValidation.warning(" Try another name. Not supported",serverName);
             }
         }
 
@@ -138,7 +139,7 @@ public class Server extends AbstractDescribableImpl<Server> {
      *
      * @param p job
      * @return the Server configured for the job
-     * @throws IllegalStateException throws if there is either null job or no server
+     * @throws RuntimeException throws if there is invalid job
      *
      */
     public static Server get(Job<?, ?> p) {
@@ -151,10 +152,8 @@ public class Server extends AbstractDescribableImpl<Server> {
                     return server;
                 }
             }
-        }else{
-            throw new IllegalStateException("A null job is passed");
         }
-        throw new IllegalStateException("Here's an error. No server configured ");
+        throw new RuntimeException("Invalid job, failed to create IPython server");
     }
 
 }
