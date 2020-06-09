@@ -29,16 +29,13 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.init.InitMilestone;
 import hudson.init.Initializer;
-import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
-import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nullable;
 import java.util.List;
