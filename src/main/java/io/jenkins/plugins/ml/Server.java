@@ -24,19 +24,24 @@
 
 package io.jenkins.plugins.ml;
 
+import com.google.common.net.InetAddresses;
 import hudson.Extension;
+import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.Job;
+import hudson.util.FormValidation;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
+import java.util.regex.Pattern;
 
 public class Server extends AbstractDescribableImpl<Server> {
-    private String serverName;
-    private String serverAddress;
-    private long launchTimeout;
-    private long maxResults;
+    private final String serverName;
+    private final String serverAddress;
+    private final long launchTimeout;
+    private final long maxResults;
 
     @DataBoundConstructor
     public Server(String serverName, String serverAddress, long launchTimeout,long maxResults) {
@@ -46,7 +51,7 @@ public class Server extends AbstractDescribableImpl<Server> {
         this.maxResults = maxResults;
     }
 
-    String getServerName() {
+    public String getServerName() {
         return serverName;
     }
 
@@ -56,6 +61,10 @@ public class Server extends AbstractDescribableImpl<Server> {
 
     public long getLaunchTimeout() {
         return launchTimeout;
+    }
+
+    public long getLaunchTimeoutInMilliSeconds() {
+        return launchTimeout*1000;
     }
 
     public long getMaxResults() {
@@ -74,26 +83,78 @@ public class Server extends AbstractDescribableImpl<Server> {
         public String getDisplayName() {
             return "Server";
         }
+
+        public FormValidation doCheckServerName(@QueryParameter String serverName) {
+            if( Util.fixEmptyAndTrim(serverName) == null){
+                return FormValidation.warning("* Required ");
+            }
+            String regex = "^[a-zA-Z0-9_]+$";
+            Pattern pattern = Pattern.compile(regex);
+            if( pattern.matcher(serverName).matches() ){
+                return FormValidation.ok();
+            }else{
+                return FormValidation.warning(" Try a another name. Not supported",serverName);
+            }
+        }
+
+        public FormValidation doCheckServerAddress(@QueryParameter String serverAddress) {
+            if( Util.fixEmptyAndTrim(serverAddress) == null){
+                return FormValidation.warning("* Required ");
+            }
+            else if(InetAddresses.isInetAddress(serverAddress)){
+                return FormValidation.ok();
+            }else{
+                return FormValidation.error("Malformed IP address ", serverAddress);
+            }
+        }
+
+        public FormValidation doCheckLaunchTimeout(@QueryParameter String launchTimeout) {
+           try{
+               Integer num = Integer.valueOf(launchTimeout);
+               if(num >= 0){
+                   return FormValidation.ok();
+               }
+           }catch (Exception e){
+               return FormValidation.error("Timeout should be a valid number ");
+           }
+           return FormValidation.ok();
+        }
+
+        public FormValidation doCheckMaxResults(@QueryParameter String maxResults) {
+            try{
+                Integer num = Integer.valueOf(maxResults);
+                if(num >= 1){
+                    return FormValidation.ok();
+                }
+            }catch (Exception e){
+                return FormValidation.error("Max results should be a valid number ");
+            }
+            return FormValidation.ok();
+        }
     }
 
     /**
      * Gets the {@link Server} associated with the given job.
      *
-     * @return local host
-     *         if no such was found.
+     * @param p job
+     * @return the Server configured for the job
+     * @throws IllegalStateException throws if there is either null job or no server
+     *
      */
     public static Server get(Job<?, ?> p) {
         if(p != null) {
             ServerJobProperty ijp = p.getProperty(ServerJobProperty.class);
             if (ijp != null) {
                 // Looks in global configuration for the server configured
-                Server site = ijp.getSite();
-                if (site != null) {
-                    return site;
+                Server server = ijp.getServer();
+                if (server != null) {
+                    return server;
                 }
             }
+        }else{
+            throw new IllegalStateException("A null job is passed");
         }
-        return new Server("localhost","127.0.0.1",1000,2);
-        }
+        throw new IllegalStateException("Here's an error. No server configured ");
+    }
 
 }

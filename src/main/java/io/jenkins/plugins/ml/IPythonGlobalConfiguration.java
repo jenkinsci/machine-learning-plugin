@@ -40,8 +40,7 @@ public class IPythonGlobalConfiguration extends GlobalConfiguration {
 
     @Nonnull
     public static IPythonGlobalConfiguration get() {
-        //noinspection deprecation
-        return (IPythonGlobalConfiguration) Objects.requireNonNull(Jenkins.getInstance()).getDescriptorOrDie(IPythonGlobalConfiguration.class);
+        return (IPythonGlobalConfiguration) Jenkins.get().getDescriptorOrDie(IPythonGlobalConfiguration.class);
     }
 
     public List<Server> servers = new PersistedList<>(this);
