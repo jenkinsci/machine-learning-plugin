@@ -200,6 +200,13 @@
                 <groupId>org.apache.rat</groupId>
                 <artifactId>apache-rat-plugin</artifactId>
                 <version>0.12</version>
+                <configuration>
+                    <excludes>
+                        <exclude>.github/pull_request_template.md</exclude>
+                        <exclude>.github/release-drafter.yml</exclude>
+                        <exclude>Jenkinsfile</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>verify</phase>
