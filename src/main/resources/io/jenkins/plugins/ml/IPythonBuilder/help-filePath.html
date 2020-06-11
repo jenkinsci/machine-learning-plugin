@@ -22,28 +22,8 @@
   ~ THE SOFTWARE.
 -->
 
-<?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-
-    <f:entry title="Name" field="serverName">
-        <f:textbox />
-    </f:entry>
-    <f:entry title="Server address" field="serverAddress">
-        <f:textbox  />
-    </f:entry>
-    <f:entry title="Launch timeout" field="launchTimeout">
-        <f:textbox default="5" />
-    </f:entry>
-    <f:entry title="Max results" field="maxResults">
-        <f:textbox default="3" />
-    </f:entry>
-    <f:entry>
-        <f:validateButton title="${%Test connection}"
-                          method="validate" with="serverAddress,launchTimeout,maxResults" />
-    </f:entry>
-    <f:entry title="">
-        <div align="right">
-            <f:repeatableDeleteButton />
-        </div>
-    </f:entry>
-</j:jelly>
+<div>
+  Path of file that contains python code to be executed in the server
+  <p>
+  Eg: /home/alice/iris/ml.py
+</div>

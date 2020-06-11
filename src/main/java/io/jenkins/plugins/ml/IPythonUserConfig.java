@@ -24,6 +24,9 @@
 
 package io.jenkins.plugins.ml;
 
+
+import java.util.Objects;
+
 public class IPythonUserConfig {
     private final String serverGatewayAddress;
     private final long iPythonLaunchTimeout;
@@ -49,6 +52,25 @@ public class IPythonUserConfig {
 
     public long getMaxResult() {
         return maxResult;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        IPythonUserConfig userConfig = (IPythonUserConfig) o;
+        return serverGatewayAddress.equals(userConfig.getServerGatewayAddress()) &&
+                iPythonLaunchTimeout == userConfig.getIPythonLaunchTimeout() &&
+                maxResult == userConfig.getMaxResult();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(serverGatewayAddress,iPythonLaunchTimeout,maxResult);
     }
 
 }

@@ -24,26 +24,21 @@
 
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-
-    <f:entry title="Name" field="serverName">
-        <f:textbox />
-    </f:entry>
-    <f:entry title="Server address" field="serverAddress">
-        <f:textbox  />
-    </f:entry>
-    <f:entry title="Launch timeout" field="launchTimeout">
-        <f:textbox default="5" />
-    </f:entry>
-    <f:entry title="Max results" field="maxResults">
-        <f:textbox default="3" />
-    </f:entry>
-    <f:entry>
-        <f:validateButton title="${%Test connection}"
-                          method="validate" with="serverAddress,launchTimeout,maxResults" />
-    </f:entry>
-    <f:entry title="">
-        <div align="right">
-            <f:repeatableDeleteButton />
-        </div>
-    </f:entry>
+    <f:section title="Choose input method" >
+        <f:radioBlock name="parserType"  value="text" checked="true" title="Text Parser" inline="true" >
+            <f:nested>
+                <f:entry title="${%Code}" field="code">
+                    <f:textarea />
+                </f:entry>
+            </f:nested>
+        </f:radioBlock>
+        <f:radioBlock name="parserType" value="file" checked="false" title="File Parser" inline="true">
+            <f:nested>
+                <f:entry title="${%File Path}" field="filePath">
+                    <f:textbox name="filePath" />
+                </f:entry>
+            </f:nested>
+        </f:radioBlock>
+    </f:section>
 </j:jelly>
+

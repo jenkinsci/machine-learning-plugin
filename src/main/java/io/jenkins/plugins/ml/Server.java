@@ -33,6 +33,7 @@ import hudson.model.Job;
 import hudson.util.FormValidation;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.Nonnull;
 import java.util.regex.Pattern;
@@ -102,7 +103,7 @@ public class Server extends AbstractDescribableImpl<Server> {
             if( Util.fixEmptyAndTrim(serverAddress) == null){
                 return FormValidation.warning("* Required ");
             }
-            else if(InetAddresses.isInetAddress(serverAddress)){
+            else if(InetAddresses.isInetAddress(serverAddress) || serverAddress.equalsIgnoreCase("localhost")){
                 return FormValidation.ok();
             }else{
                 return FormValidation.error("Malformed IP address ", serverAddress);
@@ -131,6 +132,34 @@ public class Server extends AbstractDescribableImpl<Server> {
                 return FormValidation.error("Max results should be a valid number ");
             }
             return FormValidation.ok();
+        }
+
+        /**
+         * Validate the server by testing it
+         */
+        @POST
+        public FormValidation doValidate(
+                                         @QueryParameter String serverAddress,
+                                         @QueryParameter String launchTimeout,
+                                         @QueryParameter String maxResults
+                                         ) throws Exception {
+
+            if(Util.fixEmptyAndTrim(serverAddress) != null) {
+                try{
+                    IPythonUserConfig userConfig = new IPythonUserConfig(serverAddress, Integer.parseInt(launchTimeout), Integer.parseInt(maxResults));
+                    try (InterpreterManager interpreterManager = new IPythonInterpreterManager(userConfig)) {
+                        interpreterManager.initiateInterpreter();
+                        if (interpreterManager.testConnection()) {
+                            return FormValidation.ok("Connection Successful");
+                        } else {
+                            return FormValidation.error("Connection failed");
+                        }
+                    }
+                } catch (NumberFormatException ex){
+                    return FormValidation.error("Number/s is/are not valid ");
+                }
+            }
+            return FormValidation.warning("Server address is required. Click on help for more info");
         }
     }
 
