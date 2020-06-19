@@ -39,8 +39,6 @@ public class ParsableFile extends AbstractDescribableImpl<ParsableFile> {
 
     enum SourceCodeConvertType{
         // Type of source code to be handled by IPython builder
-        NBFORMAT,
-        ZFORMAT,
         JSON,
         PY,
         NONE
@@ -48,18 +46,16 @@ public class ParsableFile extends AbstractDescribableImpl<ParsableFile> {
 
     private final String fileName;
     private final boolean deleteFilesAfterBuild;
-    private final String sType;
+    private final String convertType;
+    private final String saveConverted;
 
 
     @DataBoundConstructor
-    public ParsableFile(String fileName, boolean deleteFilesAfterBuild, String sType) {
+    public ParsableFile(String fileName, boolean deleteFilesAfterBuild, String convertType, String saveConverted) {
         this.fileName = fileName;
         this.deleteFilesAfterBuild = deleteFilesAfterBuild;
-        this.sType = sType;
-    }
-
-    public String getsType() {
-        return sType;
+        this.convertType = convertType;
+        this.saveConverted = saveConverted;
     }
 
     public String getFileName() {
@@ -70,8 +66,16 @@ public class ParsableFile extends AbstractDescribableImpl<ParsableFile> {
         return deleteFilesAfterBuild;
     }
 
-    public static ListBoxModel.Option createOption(String jobName, Enum<?> enumOption) {
-        return new ListBoxModel.Option(jobName, enumOption.name());
+    public static ListBoxModel.Option createOption(String jobName, Enum<?> enumOption, String convertType) {
+        return new ListBoxModel.Option(jobName, enumOption.name(), enumOption.name().equals(convertType));
+    }
+
+    public String getConvertType() {
+        return convertType;
+    }
+
+    public String getSaveConverted() {
+        return saveConverted;
     }
 
     @Extension
@@ -79,18 +83,16 @@ public class ParsableFile extends AbstractDescribableImpl<ParsableFile> {
         @Nonnull
         @Override
         public String getDisplayName() {
-            return " File";
+            return "File";
         }
 
         // Fill the list box from the enum
         public ListBoxModel doFillConvertTypeItems(@QueryParameter String convertType) {
             ListBoxModel model = new ListBoxModel();
 
-            model.add(createOption("Jupyter Notebook",SourceCodeConvertType.NBFORMAT));
-            model.add(createOption("Zeppelin Notebook",SourceCodeConvertType.ZFORMAT));
-            model.add(createOption("JSON",SourceCodeConvertType.JSON));
-            model.add(createOption("Python",SourceCodeConvertType.PY));
-            model.add(createOption("None",SourceCodeConvertType.NONE));
+            model.add(createOption("None", SourceCodeConvertType.NONE, convertType));
+            model.add(createOption("JSON", SourceCodeConvertType.JSON, convertType));
+            model.add(createOption("Python", SourceCodeConvertType.PY, convertType));
 
             return model;
         }

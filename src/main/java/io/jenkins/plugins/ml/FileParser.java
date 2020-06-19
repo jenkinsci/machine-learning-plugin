@@ -24,21 +24,30 @@
 
 package io.jenkins.plugins.ml;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 import io.jenkins.plugins.ml.model.ParsableFile;
+import io.jenkins.plugins.ml.utils.ConvertHelper;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -70,10 +79,61 @@ public class FileParser extends BuildWrapper {
         projectWorkspace.ifPresent((workspace) -> {
             for (ParsableFile file : parsableFiles) {
                 FilePath copyFrom = new FilePath(new File(file.getFileName()));
-                LOGGER.info(String.format("Copying file from %s to %s", copyFrom.getName(), workspace.getName()));
+                FilePath copyTo;
+                LOGGER.info(String.format("Copying file from %s to %s", copyFrom.getName(), workspace.getName() + file.getSaveConverted()));
                 try {
-                    copyFrom.copyTo(new FilePath(workspace, copyFrom.getName()));
-                    LOGGER.info("Saving name");
+                    switch (file.getConvertType()) {
+                        case "NONE":
+                            // check the save to file path is given
+                            if (Util.fixEmptyAndTrim(file.getSaveConverted()) == null) {
+                                copyTo = new FilePath(workspace, copyFrom.getName());
+                            } else {
+                                copyTo = new FilePath(workspace, file.getSaveConverted());
+                            }
+
+                            copyFrom.copyTo(copyTo);
+                            listener.getLogger().println(String.format("%s copied to %s", copyFrom.getName(), workspace.getName()));
+                            break;
+                        case "JSON":
+                            // change the extension with same file name
+                            if (Util.fixEmptyAndTrim(file.getSaveConverted()) == null) {
+                                copyTo = new FilePath(workspace, copyFrom.getName().replace(".ipynb", ".json"));
+                            } else {
+                                copyTo = new FilePath(workspace, file.getSaveConverted());
+                            }
+                            // get the absolute path to write the JSON
+                            Path path = Paths.get(copyTo.getRemote());
+                            JsonObject obj = ConvertHelper.jupyterToJSON(copyFrom);
+                            try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+                                // write to JSON
+                                Gson gson = new Gson();
+                                gson.toJson(obj, writer);
+                                listener.getLogger().println(String.format("%s copied and converted to %s", copyFrom.getName(), copyTo.getName()));
+                            }
+
+                            break;
+                        case "PY":
+                            // change the extension with same file name
+                            if (Util.fixEmptyAndTrim(file.getSaveConverted()) == null) {
+                                copyTo = new FilePath(workspace, copyFrom.getName().replace(".ipynb", ".py"));
+                            } else {
+                                copyTo = new FilePath(workspace, file.getSaveConverted());
+                            }
+                            // get the absolute path to write the JSON
+                            Path path1 = Paths.get(copyTo.getRemote());
+                            String code = ConvertHelper.jupyterToText(copyFrom);
+                            try (BufferedWriter writer = Files.newBufferedWriter(path1, StandardCharsets.UTF_8)) {
+                                // write to python file
+                                writer.write(code);
+                                listener.getLogger().println(String.format("%s copied and converted to %s", copyFrom.getName(), copyTo.getName()));
+                            }
+
+                            break;
+                        default:
+                            listener.getLogger().println("File conversion is not supported");
+                    }
+
+                    LOGGER.info("Saving file");
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace(listener.getLogger());
                 }

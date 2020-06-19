@@ -22,27 +22,8 @@
   ~ THE SOFTWARE.
 -->
 
-<?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <f:entry title="${%File}" field="fileName">
-        <f:textbox/>
-    </f:entry>
-    <f:optionalBlock name="dynamic" title="Convert file" inline="true">
-        <f:entry title="Convert Type" field="convertType">
-            <f:select />
-        </f:entry>
-        <f:entry title="${%Save To}" field="saveConverted">
-            <f:textbox/>
-        </f:entry>
-        <f:entry title="${%Delete After Build}" field="deleteFilesAfterBuild">
-            <f:checkbox/>
-        </f:entry>
-    </f:optionalBlock>
-
-    <f:entry title="">
-        <div align="right">
-            <f:repeatableDeleteButton />
-        </div>
-    </f:entry>
-</j:jelly>
-
+<div>
+    File name with extension that will be converted
+    <p>
+        Eg: demo.json
+</div>
