@@ -24,6 +24,9 @@
 
 package io.jenkins.plugins.ml;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import hudson.*;
 import hudson.model.AbstractProject;
 import hudson.model.Run;
@@ -31,7 +34,10 @@ import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import io.jenkins.plugins.ml.utils.ConvertHelper;
 import jenkins.tasks.SimpleBuildStep;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.zeppelin.interpreter.InterpreterException;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -39,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 
 public class IPythonBuilder extends Builder implements SimpleBuildStep {
 
@@ -60,7 +67,7 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep {
     }
 
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath filePath, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws AbortException {
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath ws, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws AbortException {
         try {
 
             // get the properties of the job
@@ -79,12 +86,36 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep {
                 listener.getLogger().println("Executed code output : ");
                 if(parserType.equals("text")){
                     listener.getLogger().println(interpreterManager.invokeInterpreter(code));
+                } else {
+
+                    // Run builder on selected notebook
+                    String extension = filePath.substring(filePath.lastIndexOf(".") + 1);
+                    FilePath tempFilePath = ws.child(filePath);
+                    switch (extension) {
+                        case "ipynb":
+                            listener.getLogger().println(StringUtils.stripStart(interpreterManager.invokeInterpreter(ConvertHelper.jupyterToText(tempFilePath)), "%text"));
+                            break;
+                        case "json":
+                            JsonObject obj = ConvertHelper.jupyterToJSON(tempFilePath);
+                            JsonArray array = obj.get("paragraphs").getAsJsonArray();
+                            for (JsonElement element : array)
+                                if (element.isJsonObject()) {
+                                    // get each cell form the JSON element
+                                    JsonObject cell = element.getAsJsonObject();
+                                    String code = cell.get("text").getAsString();
+                                    listener.getLogger().println(code);
+                                    listener.getLogger().println(StringUtils.stripStart(interpreterManager.invokeInterpreter(code), "%text"));
+                                }
+                            break;
+                        default:
+                            listener.getLogger().println("File is not supported by the machine learning plugin");
+
+                    }
                 }
 
-                //TODO for file parsers
             }
 
-        } catch (Exception e) {
+        } catch (InterruptedException | IOException | InterpreterException e) {
             e.printStackTrace(listener.getLogger());
             throw  new AbortException(e.getMessage());
 

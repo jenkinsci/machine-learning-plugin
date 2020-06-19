@@ -35,6 +35,8 @@ import org.apache.zeppelin.jupyter.zformat.Note;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ConvertHelper {
@@ -82,4 +84,29 @@ public class ConvertHelper {
 
     }
 
+    /**
+     * @param jupyterFile Path for the jupyter notebook
+     * @return Array of text which contains python code only
+     * @throws IOException          when file path does not exist
+     * @throws InterruptedException exception on input stream reading
+     */
+    public static List<String> jupyterToTextArray(FilePath jupyterFile) throws IOException, InterruptedException {
+        // Convert Jupyter Notebook to JSON
+        try (final InputStreamReader inputStreamReader = new InputStreamReader(jupyterFile.read(), Charset.forName("UTF-8"))) {
+            Note n = new JupyterUtil().getNote(inputStreamReader, "python", "\n", "#");
+            Gson gson = new Gson();
+            JsonElement tree = gson.toJsonTree(n);
+            JsonObject obj = tree.getAsJsonObject();
+            JsonArray array = obj.get("paragraphs").getAsJsonArray();
+            ArrayList outTextArray = new ArrayList();
+            for (JsonElement element : array)
+                if (element.isJsonObject()) {
+                    JsonObject cell = element.getAsJsonObject();
+                    String code = cell.get("text").getAsString();
+                    outTextArray.add(code);
+                }
+            return outTextArray;
+        }
+
+    }
 }

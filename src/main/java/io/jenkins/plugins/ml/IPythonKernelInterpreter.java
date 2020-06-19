@@ -24,6 +24,7 @@
 
 package io.jenkins.plugins.ml;
 
+import org.apache.zeppelin.display.GUI;
 import org.apache.zeppelin.interpreter.*;
 import org.apache.zeppelin.python.IPythonInterpreter;
 import org.slf4j.Logger;
@@ -111,7 +112,16 @@ public class IPythonKernelInterpreter implements KernelInterpreter  {
     }
 
     private static InterpreterContext getInterpreterContext() {
-        return new InterpreterContext.Builder().setNoteId("noteID").setParagraphId("paragraphId").setReplName("replName").setInterpreterOut(new InterpreterOutput(null)).build();
+        return new InterpreterContext.Builder()
+                .setNoteId("noteID")
+                .setParagraphId("paragraphId")
+                .setReplName("replName")
+                .setInterpreterOut(new InterpreterOutput(null))
+                .setNoteGUI(new GUI())
+                .setGUI(new GUI())
+                .setAngularObjectRegistry(null)
+                .setResourcePool(null)
+                .build();
 
     }
 
