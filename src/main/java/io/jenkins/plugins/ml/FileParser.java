@@ -24,7 +24,6 @@
 
 package io.jenkins.plugins.ml;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import hudson.Extension;
 import hudson.FilePath;
@@ -41,13 +40,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -101,16 +95,11 @@ public class FileParser extends BuildWrapper {
                             } else {
                                 copyTo = new FilePath(workspace, file.getSaveConverted());
                             }
-                            // get the absolute path to write the JSON
-                            Path path = Paths.get(copyTo.getRemote());
+                            // get the obj to write the JSON
                             JsonObject obj = ConvertHelper.jupyterToJSON(copyFrom);
-                            try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
-                                // write to JSON
-                                Gson gson = new Gson();
-                                gson.toJson(obj, writer);
-                                listener.getLogger().println(String.format("%s copied and converted to %s", copyFrom.getName(), copyTo.getName()));
-                            }
-
+                            // write to JSON
+                            copyTo.write(obj.toString(), "UTF-8");
+                            listener.getLogger().println(String.format("%s copied and converted to %s", copyFrom.getName(), copyTo.getName()));
                             break;
                         case "PY":
                             // change the extension with same file name
@@ -119,15 +108,11 @@ public class FileParser extends BuildWrapper {
                             } else {
                                 copyTo = new FilePath(workspace, file.getSaveConverted());
                             }
-                            // get the absolute path to write the JSON
-                            Path path1 = Paths.get(copyTo.getRemote());
+                            // get the text to write the JSON
                             String code = ConvertHelper.jupyterToText(copyFrom);
-                            try (BufferedWriter writer = Files.newBufferedWriter(path1, StandardCharsets.UTF_8)) {
-                                // write to python file
-                                writer.write(code);
-                                listener.getLogger().println(String.format("%s copied and converted to %s", copyFrom.getName(), copyTo.getName()));
-                            }
-
+                            // write to python file
+                            copyTo.write(code, "UTF-8");
+                            listener.getLogger().println(String.format("%s copied and converted to %s", copyFrom.getName(), copyTo.getName()));
                             break;
                         default:
                             listener.getLogger().println("File conversion is not supported");
