@@ -50,6 +50,41 @@ pip install protobuf
 pip install grpcio
 ----
 
+==== Configure IPython kernel
+* Name should be alphanumeric and contains only `_` as a special character
+* Valid IP address of the server (or localhost)
+* Connection establishing timeout in seconds
+* Max number of dataframe rows to display
+
+image:docs/images/global_config.png[configuration]
+
+==== Select server
+
+* Configured servers will be displayed in the job configuration
+
+image:docs/images/job_server.png[server]
+
+==== Add Jupyter Notebooks
+
+* Copy Jupyter Notebook to the workspace
+
+* Convert Jupyter Notebooks to `Python / JSON` files and save in the workspace
+
+
+image:docs/images/file_parser.png[notebook]
+
+==== Build Notebook
+
+* Use text editor to run python code directly
+* Use file path to run Jupyter Notebook or JSON
+
+image:docs/images/file_builder.png[builder]
+
+* Tips for smooth interpretation
+
+** Install link:https://github.com/jenkinsci/ansicolor-plugin[ANSI-Color plugin] for rich formatted output
+** Aware of permissions for accessing I/O in the python code
+** Make sure about `import` libraries used in the code installed properly
 
 === Contributing to the Plugin
 
