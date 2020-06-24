@@ -87,7 +87,14 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep {
 
                     // Run builder on selected notebook
                     String extension = filePath.substring(filePath.lastIndexOf(".") + 1);
-                    FileExtension ext = extension.equals("ipynb") ? FileExtension.ipynb : FileExtension.json;
+                    FileExtension ext;
+                    try {
+                        // assign the extension from the enum
+                        ext = FileExtension.valueOf(extension);
+                    } catch (Exception e) {
+                        ext = FileExtension.txt;
+                    }
+                    // create file path for the file
                     FilePath tempFilePath = ws.child(filePath);
                     switch (ext) {
                         case ipynb:
@@ -110,6 +117,9 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep {
                                     }
                             }
                             break;
+                        case py:
+                            listener.getLogger().println(StringUtils.stripStart(interpreterManager.invokeInterpreter(tempFilePath.readToString()), "%text"));
+                            break;
                         default:
                             listener.getLogger().println("File is not supported by the machine learning plugin");
                     }
@@ -130,7 +140,9 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep {
 
     enum FileExtension {
         ipynb,
-        json
+        json,
+        py,
+        txt
     }
 
     @Symbol("ipythonBuilder")
