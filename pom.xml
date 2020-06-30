@@ -33,7 +33,7 @@
     </parent>
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>machine-learning</artifactId>
-    <version>1.0</version>
+    <version>0.1-alpha-1-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <properties>
         <jenkins.version>2.164.3</jenkins.version>
