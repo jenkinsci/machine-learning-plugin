@@ -72,7 +72,6 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath ws, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws AbortException {
         try {
-
             // get the properties of the job
             ServerJobProperty ipythonServerJobProperty = run.getParent().getProperty(ServerJobProperty.class);
             String serverName = ipythonServerJobProperty.getServer().getServerName();
@@ -108,6 +107,7 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                             }
                             // create file path for the file
                             FilePath tempFilePath = ws.child(filePath);
+                            run.addAction(new EditCodeAction(run, tempFilePath));
                             switch (ext) {
                                 case ipynb:
                                     listener.getLogger().println(StringUtils.stripStart(interpreterManager.invokeInterpreter(ConvertHelper.jupyterToText(tempFilePath)), "%text"));
@@ -154,6 +154,10 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
 
     public String getCode() {
         return code;
+    }
+
+    public String getFilePath() {
+        return filePath;
     }
 
     enum FileExtension {

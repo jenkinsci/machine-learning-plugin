@@ -23,22 +23,27 @@
 -->
 
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <f:section title="Choose input method" >
-        <f:radioBlock name="parserType" value="text" checked="false" title="Text Parser" inline="true">
-            <f:nested>
-                <f:entry title="${%Code}" field="code">
-                    <f:textarea codemirror-mode="javascript" codemirror-config=""/>
-                </f:entry>
-            </f:nested>
-        </f:radioBlock>
-        <f:radioBlock name="parserType" value="file" checked="true" title="File Parser" inline="true">
-            <f:nested>
-                <f:entry title="${%File Path}" field="filePath">
-                    <f:textbox name="filePath" />
-                </f:entry>
-            </f:nested>
-        </f:radioBlock>
-    </f:section>
-</j:jelly>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:f="/lib/form">
+    <l:layout title="Code Editor">
+        <l:side-panel>
+            <st:include page="sidepanel.jelly" it="${it.run}" optional="true"/>
+        </l:side-panel>
 
+        <l:main-panel>
+            <h1>
+                Re build
+            </h1>
+            <j:if test="${it.rebuildEnabled}">
+                <f:form action="run" method="POST" name="config">
+                    <f:entry field="code" title="Code ">
+                        <f:textarea value="${it.code}" codemirror-mode="${it.codeMirrorMode}" codemirror-config=""/>
+                    </f:entry>
+                    <f:bottomButtonBar>
+                        <f:submit value="Run"/>
+                    </f:bottomButtonBar>
+                </f:form>
+
+            </j:if>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
