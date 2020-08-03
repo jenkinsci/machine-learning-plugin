@@ -61,13 +61,15 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
     private static final Logger LOGGER = LoggerFactory.getLogger(IPythonBuilder.class);
 
     private final String code;
+    private final String kernel;
     private final String filePath;
     private final String parserType;
     private final String task;
 
     @DataBoundConstructor
-    public IPythonBuilder(String code, String filePath, String parserType, String task) {
+    public IPythonBuilder(String code, String kernel, String filePath, String parserType, String task) {
         this.code = code;
+        this.kernel = kernel;
         this.filePath = Util.fixEmptyAndTrim(filePath);
         this.parserType = parserType;
         this.task = task;
@@ -116,7 +118,6 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
     enum FileExtension {
         ipynb,
         json,
-        py,
         txt
     }
 
@@ -177,9 +178,9 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                 listener.getLogger().println("Type : " + parserType.toUpperCase());
                 listener.getLogger().println("Working directory : " + ws.getRemote());
                 // Change working directory as workspace directory
-                interpreterManager.invokeInterpreter("import os\nos.chdir('" + ws.getRemote() + "')", "test", ws);
+                interpreterManager.invokeInterpreter("import os\nos.chdir('" + ws.getRemote() + "')","python", "test", ws);
                 if (parserType.equals("text")) {
-                    listener.getLogger().println(interpreterManager.invokeInterpreter(code, task, ws));
+                    listener.getLogger().println(interpreterManager.invokeInterpreter(code, kernel, task, ws));
                 } else {
                     if (Util.fixEmptyAndTrim(filePath) != null) {
                         // Run builder on selected notebook
@@ -196,7 +197,7 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                         listener.getLogger().println("Output : ");
                         switch (ext) {
                             case ipynb:
-                                listener.getLogger().println((interpreterManager.invokeInterpreter(ConvertHelper.jupyterToText(tempFilePath), task, ws)));
+                                listener.getLogger().println((interpreterManager.invokeInterpreter(ConvertHelper.jupyterToText(tempFilePath), kernel, task, ws)));
                                 break;
                             case json:
                                 // Zeppelin note book or JSON file will be interpreted line by line
@@ -211,16 +212,13 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                                             JsonObject cell = element.getAsJsonObject();
                                             String code = cell.get("text").getAsString();
                                             listener.getLogger().println(code);
-                                            listener.getLogger().println(interpreterManager.invokeInterpreter(code, task, ws));
+                                            listener.getLogger().println(interpreterManager.invokeInterpreter(code, kernel, task, ws));
                                         }
                                 }
                                 break;
-                            case py:
-                                listener.getLogger().println(interpreterManager.invokeInterpreter(tempFilePath.readToString(), task, ws));
-                                break;
                             default:
-                                listener.fatalError(filePath + " is not supported by the machine learning plugin");
-                                return Result.FAILURE;
+                                listener.getLogger().println(interpreterManager.invokeInterpreter(tempFilePath.readToString(), kernel, task, ws));
+                                return Result.SUCCESS;
                         }
                     } else {
                         listener.fatalError("The file path is empty");

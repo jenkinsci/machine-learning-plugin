@@ -128,7 +128,7 @@ public class IPythonBuilderTest {
         ServerJobProperty jobProp = project.getProperty(ServerJobProperty.class);
         assertNotNull(jobProp);
 
-        IPythonBuilder builder = new IPythonBuilder("32+6", " ", "text", "test");
+        IPythonBuilder builder = new IPythonBuilder("32+6", "python", " ", "text", "test");
         project.getBuildersList().add(builder);
 
         project.save();
@@ -160,7 +160,7 @@ public class IPythonBuilderTest {
         String PROJECT_NAME = "demo";
         project = jenkins.createFreeStyleProject(PROJECT_NAME);
         // created a builder and added
-        IPythonBuilder builder = new IPythonBuilder("", "train.py", "text", "test");
+        IPythonBuilder builder = new IPythonBuilder("", "python", "train.py", "text", "test");
         project.getBuildersList().add(builder);
 
         // configure web client

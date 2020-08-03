@@ -36,7 +36,7 @@ import java.util.List;
 
 public interface KernelInterpreter {
 
-    List<InterpreterResultMessage> interpretCode(String code) throws IOException, InterpreterException;
+    List<InterpreterResultMessage> interpretCode(String code, String kernel) throws IOException, InterpreterException;
 
     void start() throws InterpreterException;
 

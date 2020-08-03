@@ -24,14 +24,17 @@
 
 package io.jenkins.plugins.ml;
 
-import org.apache.zeppelin.display.GUI;
 import org.apache.zeppelin.interpreter.*;
-import org.apache.zeppelin.python.IPythonInterpreter;
+import org.apache.zeppelin.jupyter.JupyterInterpreter;
+import org.apache.zeppelin.resource.LocalResourcePool;
+import org.apache.zeppelin.resource.ResourcePool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 public class IPythonKernelInterpreter implements KernelInterpreter  {
@@ -45,6 +48,7 @@ public class IPythonKernelInterpreter implements KernelInterpreter  {
     private final long maxResult;
 
     private LazyOpenInterpreter interpreter;
+    private ResourcePool resourcePool;
 
     /**
      * @param userConfig - user's configuration including server address etc.
@@ -62,7 +66,8 @@ public class IPythonKernelInterpreter implements KernelInterpreter  {
         properties.setProperty("zeppelin.py4j.useAuth","false");
 
         // Initiate a Lazy interpreter
-        interpreter = new LazyOpenInterpreter(new IPythonInterpreter(properties));
+        interpreter = new LazyOpenInterpreter(new JupyterInterpreter(properties));
+        resourcePool = new LocalResourcePool("local");
 
     }
 
@@ -72,9 +77,9 @@ public class IPythonKernelInterpreter implements KernelInterpreter  {
      * @return the list of result of the interpreted code
      */
     @Override
-    public List<InterpreterResultMessage> interpretCode(String code) throws IOException, InterpreterException {
+    public List<InterpreterResultMessage> interpretCode(String code, String kernel) throws IOException, InterpreterException {
         InterpreterResult result;
-        InterpreterContext context = getInterpreterContext();
+        InterpreterContext context = getInterpreterContext(kernel);
         result = interpreter.interpret(code, context);
         LOGGER.info(result.code().toString());
         List<InterpreterResultMessage> rst = context.out.toInterpreterResultMessage();
@@ -99,18 +104,16 @@ public class IPythonKernelInterpreter implements KernelInterpreter  {
         return "IPython Interpreter";
     }
 
-    private static InterpreterContext getInterpreterContext() {
-        return new InterpreterContext.Builder()
-                .setNoteId("noteID")
+    private InterpreterContext getInterpreterContext(String kernel) {
+        Map<String, String> localProperties = new HashMap<>();
+        localProperties.put("kernel", kernel);
+        return InterpreterContext.builder()
+                .setNoteId("noteId")
                 .setParagraphId("paragraphId")
-                .setReplName("replName")
                 .setInterpreterOut(new InterpreterOutput(null))
-                .setNoteGUI(new GUI())
-                .setGUI(new GUI())
-                .setAngularObjectRegistry(null)
-                .setResourcePool(null)
+                .setLocalProperties(localProperties)
+                .setResourcePool(resourcePool)
                 .build();
-
     }
 
     public void setInterpreter(LazyOpenInterpreter interpreter) {
