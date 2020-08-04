@@ -27,7 +27,11 @@ package io.jenkins.plugins.ml;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
+import hudson.model.Label;
+import hudson.slaves.DumbSlave;
+import hudson.tasks.Shell;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,6 +68,13 @@ public class IPythonBuilderTest {
         // submit the global configurations
         jenkins.submit(form);
 
+        // create a dump slave
+        DumbSlave slave = jenkins.createOnlineSlave(Label.get("ml-agent"));
+        project.setAssignedLabel(slave.getSelfLabel());
+        // Installing dependencies
+        project.getBuildersList()
+                .add(new Shell("pip install jupyter\npip install protobuf\npip install grpcio"));
+
     }
     @Test
     public void testAdditionBuild() throws Exception {
@@ -74,12 +85,11 @@ public class IPythonBuilderTest {
         ServerJobProperty jobProp = project.getProperty(ServerJobProperty.class);
         assertNotNull(jobProp);
 
-        /* Builder test
-        String name = "%text 37";
-        IPythonBuilder builder = new IPythonBuilder("32+5",null,"text");
+        // Start build on agent
+        String name = "37";
+        IPythonBuilder builder = new IPythonBuilder("32+5", "python", "text", "test");
         project.getBuildersList().add(builder);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         jenkins.assertLogContains( name, build);
-        */
     }
 }
