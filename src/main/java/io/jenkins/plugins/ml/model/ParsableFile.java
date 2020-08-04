@@ -66,6 +66,11 @@ public class ParsableFile extends AbstractDescribableImpl<ParsableFile> {
         return deleteFilesAfterBuild;
     }
 
+    public boolean isChecked() {
+        return !convertType.equals(SourceCodeConvertType.NONE.toString());
+    }
+
+
     public static ListBoxModel.Option createOption(String jobName, Enum<?> enumOption, String convertType) {
         return new ListBoxModel.Option(jobName, enumOption.name(), enumOption.name().equals(convertType));
     }

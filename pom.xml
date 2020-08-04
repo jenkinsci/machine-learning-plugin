@@ -140,6 +140,10 @@
                     <groupId>org.apache.commons</groupId>
                     <artifactId>commons-lang3</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.zeppelin/zeppelin-python -->
@@ -218,6 +222,24 @@
                     <artifactId>commons-lang3</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>11.0.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.jenkins-ci.plugins/docker-workflow -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>docker-workflow</artifactId>
+            <version>1.23</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.jenkins-ci.plugins/command-launcher -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>command-launcher</artifactId>
+            <version>1.3</version>
         </dependency>
     </dependencies>
 

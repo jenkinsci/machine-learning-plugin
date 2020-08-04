@@ -47,6 +47,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -98,6 +99,19 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
     public String getCode() {
         return code;
     }
+    public String getFilePath() {
+        return filePath;
+    }
+
+    @CheckForNull
+    public String getParserType() {
+        return parserType;
+    }
+
+    @CheckForNull
+    public String getTask() {
+        return task;
+    }
 
     enum FileExtension {
         ipynb,
@@ -133,6 +147,7 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
         }
 
         @Override
+        @Nonnull
         public String getDisplayName() {
             return "IPython Builder";
         }

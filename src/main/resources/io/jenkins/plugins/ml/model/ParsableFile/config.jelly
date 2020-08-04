@@ -27,7 +27,7 @@
     <f:entry title="${%File}" field="fileName">
         <f:textbox/>
     </f:entry>
-    <f:optionalBlock name="dynamic" title="Convert file" inline="true">
+    <f:optionalBlock name="dynamic" title="Convert file" inline="true" checked="${instance.checked}">
         <f:entry title="Convert Type" field="convertType">
             <f:select />
         </f:entry>

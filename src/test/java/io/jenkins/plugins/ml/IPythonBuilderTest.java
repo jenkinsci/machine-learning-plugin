@@ -29,9 +29,9 @@ import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
-import hudson.model.Label;
+import hudson.model.queue.QueueTaskFuture;
+import hudson.slaves.CommandLauncher;
 import hudson.slaves.DumbSlave;
-import hudson.tasks.Shell;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,14 +67,10 @@ public class IPythonBuilderTest {
         maxResults.get(0).setValueAttribute("3");
         // submit the global configurations
         jenkins.submit(form);
-
-        // create a dump slave
-        DumbSlave slave = jenkins.createOnlineSlave(Label.get("ml-agent"));
-        project.setAssignedLabel(slave.getSelfLabel());
-        // Installing dependencies
-        project.getBuildersList()
-                .add(new Shell("pip install jupyter\npip install protobuf\npip install grpcio"));
-
+        // create a agent using the docker command
+        DumbSlave s = new DumbSlave("s", "/home/jenkins", new CommandLauncher("docker run -i --rm --init loghijiaha/ml-agent java -jar /usr/share/jenkins/agent.jar"));
+        jenkins.jenkins.addNode(s);
+        project.setAssignedNode(s);
     }
     @Test
     public void testAdditionBuild() throws Exception {
@@ -85,11 +81,27 @@ public class IPythonBuilderTest {
         ServerJobProperty jobProp = project.getProperty(ServerJobProperty.class);
         assertNotNull(jobProp);
 
-        // Start build on agent
-        String name = "37";
-        IPythonBuilder builder = new IPythonBuilder("32+5", "python", "text", "test");
+        IPythonBuilder builder = new IPythonBuilder("32+6", " ", "text", "test");
         project.getBuildersList().add(builder);
-        FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
-        jenkins.assertLogContains( name, build);
+
+        project.save();
+
+        QueueTaskFuture<FreeStyleBuild> taskFuture = project.scheduleBuild2(0);
+        FreeStyleBuild freeStyleBuild = taskFuture.get();
+        jenkins.waitForCompletion(freeStyleBuild);
+        jenkins.assertBuildStatusSuccess(freeStyleBuild);
+        jenkins.assertLogContains("38", freeStyleBuild);
+//        p.setDefinition(
+//        new CpsFlowDefinition(
+//            "node{\n"
+//                + "def testImage = docker.image('loghijiaha/ml-agent:latest')\n"
+//                + "testImage.inside { \n"
+//                + "ipythonBuilder code:'print(35+2)',filePath:'', parserType:'text', task: 'test'\n"
+//                + "sh 'pip freeze'\n"
+//                + "sh 'which python'\n"
+//                + "}\n"
+//                + "}",
+//            false));
+
     }
 }
