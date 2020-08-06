@@ -36,11 +36,7 @@ import hudson.remoting.VirtualChannel;
 import hudson.slaves.CommandLauncher;
 import hudson.slaves.DumbSlave;
 import hudson.slaves.SlaveComputer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.jvnet.hudson.test.Issue;
+import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import java.util.ArrayList;
@@ -90,13 +86,10 @@ public class IPythonBuilderTest {
 
         @After
         protected void tearDown() throws Exception {
-            if (Functions.isWindows()) {
-                purgeSlaves();
-            }
+            purgeSlaves();
         }
     };
 
-    @Issue("SECURITY-1682")
     @Before
     public void createMocks() throws Exception {
         configPage = jenkins.createWebClient().goTo("configure");
@@ -116,20 +109,19 @@ public class IPythonBuilderTest {
         jenkins.submit(form);
         // create a agent using the docker command
         DumbSlave s;
-        if (Functions.isWindows()) {
-            System.setProperty("jenkins.slaves.JnlpSlaveAgentProtocol3.ALLOW_UNSAFE", "true");
-            s = new DumbSlave("s", "C:/Users/jenkins", new CommandLauncher("docker run -i --rm --init loghijiaha/ml-agent -jar C:/ProgramData/Jenkins/agent.jar"));
-
-        } else {
+        if (!Functions.isWindows()) {
             s = new DumbSlave("s", "/home/jenkins", new CommandLauncher("docker run -i --rm --init loghijiaha/ml-agent java -jar /usr/share/jenkins/agent.jar"));
+            jenkins.jenkins.addNode(s);
+            project.setAssignedNode(s);
         }
-        jenkins.jenkins.addNode(s);
-        project.setAssignedNode(s);
+        // TODO for windows : after creating a windows supported docker image
+
 
     }
     @Test
     public void testAdditionBuild() throws Exception {
 
+        Assume.assumeTrue(!Functions.isWindows());
         ServerJobProperty ijj = new ServerJobProperty("localHost");
         assertNotNull("Job property is null",ijj);
         project.addProperty(ijj);
@@ -146,17 +138,20 @@ public class IPythonBuilderTest {
         jenkins.waitForCompletion(freeStyleBuild);
         jenkins.assertBuildStatusSuccess(freeStyleBuild);
         jenkins.assertLogContains("38", freeStyleBuild);
-//        p.setDefinition(
-//        new CpsFlowDefinition(
-//            "node{\n"
-//                + "def testImage = docker.image('loghijiaha/ml-agent:latest')\n"
-//                + "testImage.inside { \n"
-//                + "ipythonBuilder code:'print(35+2)',filePath:'', parserType:'text', task: 'test'\n"
-//                + "sh 'pip freeze'\n"
-//                + "sh 'which python'\n"
-//                + "}\n"
-//                + "}",
-//            false));
+
+        /* TODO pipeline testings
+        p.setDefinition(
+        new CpsFlowDefinition(
+        "node{\n"
+        + "def testImage = docker.image('loghijiaha/ml-agent:latest')\n"
+        + "testImage.inside { \n"
+        + "ipythonBuilder code:'print(35+2)',filePath:'', parserType:'text', task: 'test'\n"
+        + "sh 'pip freeze'\n"
+        + "sh 'which python'\n"
+        + "}\n"
+        + "}",
+        false));
+        */
 
     }
 
