@@ -27,18 +27,26 @@ package io.jenkins.plugins.ml;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import hudson.Functions;
+import hudson.model.Computer;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.queue.QueueTaskFuture;
+import hudson.remoting.VirtualChannel;
 import hudson.slaves.CommandLauncher;
 import hudson.slaves.DumbSlave;
+import hudson.slaves.SlaveComputer;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class IPythonBuilderTest {
@@ -48,8 +56,47 @@ public class IPythonBuilderTest {
     private FreeStyleProject project;
 
     @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    public JenkinsRule jenkins = new JenkinsRule() {
+        private void purgeSlaves() {
+            List<Computer> disconnectingComputers = new ArrayList<Computer>();
+            List<VirtualChannel> closingChannels = new ArrayList<VirtualChannel>();
+            for (Computer computer : jenkins.getComputers()) {
+                if (!(computer instanceof SlaveComputer)) {
+                    continue;
+                }
+                // disconnect slaves.
+                // retrieve the channel before disconnecting.
+                // even a computer gets offline, channel delays to close.
+                if (!computer.isOffline()) {
+                    VirtualChannel ch = computer.getChannel();
+                    computer.disconnect(null);
+                    disconnectingComputers.add(computer);
+                    closingChannels.add(ch);
+                }
+            }
 
+            try {
+                // Wait for all computers disconnected and all channels closed.
+                for (Computer computer : disconnectingComputers) {
+                    computer.waitUntilOffline();
+                }
+                for (VirtualChannel ch : closingChannels) {
+                    ch.join();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @After
+        protected void tearDown() throws Exception {
+            if (Functions.isWindows()) {
+                purgeSlaves();
+            }
+        }
+    };
+
+    @Issue("SECURITY-1682")
     @Before
     public void createMocks() throws Exception {
         configPage = jenkins.createWebClient().goTo("configure");
@@ -68,9 +115,17 @@ public class IPythonBuilderTest {
         // submit the global configurations
         jenkins.submit(form);
         // create a agent using the docker command
-        DumbSlave s = new DumbSlave("s", "/home/jenkins", new CommandLauncher("docker run -i --rm --init loghijiaha/ml-agent java -jar /usr/share/jenkins/agent.jar"));
+        DumbSlave s;
+        if (Functions.isWindows()) {
+            System.setProperty("jenkins.slaves.JnlpSlaveAgentProtocol3.ALLOW_UNSAFE", "true");
+            s = new DumbSlave("s", "C:/Users/jenkins", new CommandLauncher("docker run -i --rm --init loghijiaha/ml-agent -jar C:/ProgramData/Jenkins/agent.jar"));
+
+        } else {
+            s = new DumbSlave("s", "/home/jenkins", new CommandLauncher("docker run -i --rm --init loghijiaha/ml-agent java -jar /usr/share/jenkins/agent.jar"));
+        }
         jenkins.jenkins.addNode(s);
         project.setAssignedNode(s);
+
     }
     @Test
     public void testAdditionBuild() throws Exception {
@@ -104,4 +159,25 @@ public class IPythonBuilderTest {
 //            false));
 
     }
+
+    @Test
+    public void testJobConfigReload() throws Exception {
+        String PROJECT_NAME = "demo";
+        project = jenkins.createFreeStyleProject(PROJECT_NAME);
+        // created a builder and added
+        IPythonBuilder builder = new IPythonBuilder("", "train.py", "text", "test");
+        project.getBuildersList().add(builder);
+
+        // configure web client
+        JenkinsRule.WebClient webClient = jenkins.createWebClient();
+        HtmlPage jobConfigPage = webClient.getPage(project, "configure");
+        form = jobConfigPage.getFormByName("config");
+        configPage.refresh();
+        // check whether the configuration is persisted or not
+        List<HtmlInput> task = form.getInputsByName("task");
+        List<HtmlInput> filePath = form.getInputsByName("filePath");
+        assertEquals("train.py", filePath.get(0).getValueAttribute());
+        assertEquals("test", task.get(0).getValueAttribute());
+    }
+
 }
