@@ -128,8 +128,8 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
-        public FormValidation doCheckCode(@QueryParameter String value) {
-            if (Util.fixEmptyAndTrim(value) == null)
+        public FormValidation doCheckCode(@QueryParameter String code) {
+            if (Util.fixEmptyAndTrim(code) == null)
                 return FormValidation.error("Code is empty");
             return FormValidation.ok();
         }

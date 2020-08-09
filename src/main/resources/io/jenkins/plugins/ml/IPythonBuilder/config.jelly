@@ -41,7 +41,13 @@
                       inline="true">
             <f:nested>
                 <f:entry title="${%Code}" field="code">
-                    <f:textarea codemirror-mode="python" codemirror-config=""/>
+                    <script>
+                        function cmChange(editor, change) {
+                        editor.save();
+                        $$('.validated').forEach(function (e) {e.onchange()})
+                        }
+                    </script>
+                    <f:textarea codemirror-mode="python" codemirror-config="'onChange': cmChange" name="code"/>
                 </f:entry>
             </f:nested>
         </f:radioBlock>
