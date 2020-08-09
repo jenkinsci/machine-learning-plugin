@@ -36,6 +36,7 @@ import hudson.remoting.VirtualChannel;
 import hudson.slaves.CommandLauncher;
 import hudson.slaves.DumbSlave;
 import hudson.slaves.SlaveComputer;
+import hudson.util.FormValidation;
 import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 
@@ -85,7 +86,7 @@ public class IPythonBuilderTest {
         }
 
         @After
-        protected void tearDown() throws Exception {
+        protected void tearDown() {
             purgeSlaves();
         }
     };
@@ -160,7 +161,7 @@ public class IPythonBuilderTest {
         String PROJECT_NAME = "demo";
         project = jenkins.createFreeStyleProject(PROJECT_NAME);
         // created a builder and added
-        IPythonBuilder builder = new IPythonBuilder("", "python", "train.py", "text", "test");
+        IPythonBuilder builder = new IPythonBuilder("", "python", "train.py", "file", "test");
         project.getBuildersList().add(builder);
 
         // configure web client
@@ -173,6 +174,19 @@ public class IPythonBuilderTest {
         List<HtmlInput> filePath = form.getInputsByName("filePath");
         assertEquals("train.py", filePath.get(0).getValueAttribute());
         assertEquals("test", task.get(0).getValueAttribute());
+    }
+
+    @Test
+    public void testCodeAreaFormValidation() {
+
+        // check for null
+        IPythonBuilder.DescriptorImpl descriptor = new IPythonBuilder.DescriptorImpl();
+        FormValidation result = descriptor.doCheckCode("");
+        assertEquals(result.kind, FormValidation.Kind.ERROR);
+
+        // check a non null input
+        FormValidation result1 = descriptor.doCheckCode("print('HI')");
+        assertEquals(result1.kind, FormValidation.Kind.OK);
     }
 
 }
