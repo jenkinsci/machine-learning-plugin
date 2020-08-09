@@ -115,6 +115,11 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
         return task;
     }
 
+    @CheckForNull
+    public String getKernel() {
+        return kernel;
+    }
+
     public boolean isText() {
         return parserType.equals("text");
     }
