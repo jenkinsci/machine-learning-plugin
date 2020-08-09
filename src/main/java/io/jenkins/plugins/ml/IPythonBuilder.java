@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
@@ -73,6 +74,8 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
     private final String parserType;
     private final String task;
     private final String kernelName;
+
+    private String save_folder;
 
     @DataBoundConstructor
     public IPythonBuilder(String code, String filePath, String parserType, String task, String kernelName) {
@@ -103,8 +106,18 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
             listener.getLogger().println("Language : " + serverName.toUpperCase());
             // create configuration
             IPythonUserConfig jobUserConfig = new IPythonUserConfig(kernel, launchTimeout, maxResults);
+            // Save artifacts with buildID
+            this.save_folder = run.getId() + File.separator + task;
             // Get the right channel to execute the code
             run.setResult(launcher.getChannel().call(new ExecutorImpl(ws, listener, jobUserConfig)));
+            ResultAction a = run.getAction(ResultAction.class);
+            // search and update for action after teh build
+            if (a != null) {
+                run.replaceAction(a.updateSummary());
+            } else {
+                run.addAction(new ResultAction(run, ws));
+            }
+
 
         } catch (Throwable e) {
             e.printStackTrace(listener.getLogger());
@@ -227,7 +240,7 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                 // Change working directory as workspace directory
                 interpreterManager.invokeInterpreter("import os\nos.chdir('" + ws.getRemote() + "')", "test", ws);
                 if (parserType.equals("text")) {
-                    listener.getLogger().println(interpreterManager.invokeInterpreter(code, task, ws));
+                    listener.getLogger().println(interpreterManager.invokeInterpreter(code, save_folder, ws));
                 } else {
                     if (Util.fixEmptyAndTrim(filePath) != null) {
                         // Run builder on selected notebook
@@ -244,7 +257,7 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                         listener.getLogger().println("Output : ");
                         switch (ext) {
                             case ipynb:
-                                listener.getLogger().println((interpreterManager.invokeInterpreter(ConvertHelper.jupyterToText(tempFilePath), task, ws)));
+                                listener.getLogger().println((interpreterManager.invokeInterpreter(ConvertHelper.jupyterToText(tempFilePath), save_folder, ws)));
                                 break;
                             case json:
                                 // Zeppelin note book or JSON file will be interpreted line by line
@@ -258,12 +271,12 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                                         }
                                         String code = para.getText();
                                         listener.getLogger().println(code);
-                                        listener.getLogger().println(interpreterManager.invokeInterpreter(code, task, ws));
+                                        listener.getLogger().println(interpreterManager.invokeInterpreter(code, save_folder, ws));
                                     }
                                 }
                                 break;
                             default:
-                                listener.getLogger().println(interpreterManager.invokeInterpreter(tempFilePath.readToString(), task, ws));
+                                listener.getLogger().println(interpreterManager.invokeInterpreter(tempFilePath.readToString(), save_folder, ws));
                                 return Result.SUCCESS;
                         }
                     } else {

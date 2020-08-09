@@ -138,6 +138,7 @@ public class IPythonInterpreterManager extends InterpreterManager {
         }
         if (containsHTML) {
             Dumper.dumpHtml(strHTMLBuild.toString(), task, workspace);
+            strTEXTBuild.append("HTML added to ").append(task);
             LOGGER.info("Successfully saved ", task);
         }
         return strTEXTBuild.toString();
