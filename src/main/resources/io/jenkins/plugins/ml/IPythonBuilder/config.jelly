@@ -37,14 +37,16 @@
         </select>
     </f:entry>
     <f:section title="Choose input method" >
-        <f:radioBlock name="parserType" value="text" checked="false" title="Text Parser" inline="true">
+        <f:radioBlock name="parserType" value="text" checked='${instance.Text == true}' title="Text Parser"
+                      inline="true">
             <f:nested>
                 <f:entry title="${%Code}" field="code">
                     <f:textarea codemirror-mode="python" codemirror-config=""/>
                 </f:entry>
             </f:nested>
         </f:radioBlock>
-        <f:radioBlock name="parserType" value="file" checked="true" title="File Parser" inline="true">
+        <f:radioBlock name="parserType" value="file" checked='${instance.Text == false}' title="File Parser"
+                      inline="true">
             <f:nested>
                 <f:entry title="${%File Path}" field="filePath">
                     <f:textbox name="filePath" />

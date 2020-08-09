@@ -115,6 +115,9 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
         return task;
     }
 
+    public boolean isText() {
+        return parserType.equals("text");
+    }
     enum FileExtension {
         ipynb,
         json,
