@@ -62,9 +62,9 @@ pip install grpcio
 
 ==== Configure IPython kernel
 * Name should be alphanumeric and contains only `_` as a special character
-* Valid IP address of the server (or localhost)
+* Language kernel name (Eg: python, ir, ijavascript etc)
 * Connection establishing timeout in seconds
-* Max number of dataframe rows to display
+* Max number of data frame in rows
 
 image:docs/images/global_config.png[configuration]
 
