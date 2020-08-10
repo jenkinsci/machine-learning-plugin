@@ -48,9 +48,9 @@ public class IPythonServerGlobalConfigurationTest {
     public void setup() throws IOException, SAXException {
         configPage = j.createWebClient().goTo("configure");
         form = configPage.getFormByName("config");
-        getButton(form, "Add new Server")
+        getButton(form, "Add new Kernel")
                 .click();
-        getButton(form, "Add new Server")
+        getButton(form, "Add new Kernel")
                 .click();
     }
 
@@ -60,9 +60,9 @@ public class IPythonServerGlobalConfigurationTest {
         List<HtmlInput> serverName = form.getInputsByName("_.serverName");
         serverName.get(0).setValueAttribute("localHost");
         serverName.get(1).setValueAttribute("IPython_Server");
-        List<HtmlInput> serverAddress = form.getInputsByName("_.serverAddress");
-        serverAddress.get(0).setValueAttribute("127.0.0.1");
-        serverAddress.get(1).setValueAttribute("192.168.12.1");
+        List<HtmlInput> kernel = form.getInputsByName("_.kernel");
+        kernel.get(0).setValueAttribute("python");
+        kernel.get(1).setValueAttribute("ir");
         List<HtmlInput> launchTimeout = form.getInputsByName("_.launchTimeout");
         launchTimeout.get(0).setValueAttribute("5");
         launchTimeout.get(1).setValueAttribute("1");
@@ -74,29 +74,29 @@ public class IPythonServerGlobalConfigurationTest {
 
         form = configPage.getFormByName("config");
         serverName = form.getInputsByName("_.serverName");
-        serverAddress = form.getInputsByName("_.serverAddress");
+        kernel = form.getInputsByName("_.kernel");
         launchTimeout = form.getInputsByName("_.launchTimeout");
         maxResults= form.getInputsByName("_.maxResults");
 
         assertEquals("localHost", serverName.get(0).getValueAttribute());
-        assertEquals("127.0.0.1", serverAddress.get(0).getValueAttribute());
+        assertEquals("python", kernel.get(0).getValueAttribute());
         assertEquals("5", launchTimeout.get(0).getValueAttribute());
         assertEquals("3", maxResults.get(0).getValueAttribute());
 
         assertEquals("IPython_Server", serverName.get(1).getValueAttribute());
-        assertEquals("192.168.12.1", serverAddress.get(1).getValueAttribute());
+        assertEquals("ir", kernel.get(1).getValueAttribute());
         assertEquals("1", launchTimeout.get(1).getValueAttribute());
         assertEquals("1", maxResults.get(1).getValueAttribute());
 
         configPage.refresh();
 
         assertEquals("localHost", serverName.get(0).getValueAttribute());
-        assertEquals("127.0.0.1", serverAddress.get(0).getValueAttribute());
+        assertEquals("python", kernel.get(0).getValueAttribute());
         assertEquals("5", launchTimeout.get(0).getValueAttribute());
         assertEquals("3", maxResults.get(0).getValueAttribute());
 
         assertEquals("IPython_Server", serverName.get(1).getValueAttribute());
-        assertEquals("192.168.12.1", serverAddress.get(1).getValueAttribute());
+        assertEquals("ir", kernel.get(1).getValueAttribute());
         assertEquals("1", launchTimeout.get(1).getValueAttribute());
         assertEquals("1", maxResults.get(1).getValueAttribute());
     }

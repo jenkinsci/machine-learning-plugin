@@ -24,6 +24,7 @@
 
 package io.jenkins.plugins.ml;
 
+import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.google.gson.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.*;
@@ -34,6 +35,7 @@ import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import io.jenkins.plugins.ml.utils.ConvertHelper;
 import jenkins.security.MasterToSlaveCallable;
 import jenkins.tasks.SimpleBuildStep;
@@ -42,6 +44,7 @@ import org.apache.zeppelin.jupyter.zformat.Note;
 import org.jenkinsci.Symbol;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.slf4j.Logger;
@@ -49,10 +52,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.List;
+import java.util.stream.Stream;
 
 public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializable {
 
@@ -61,18 +67,24 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
     private static final Logger LOGGER = LoggerFactory.getLogger(IPythonBuilder.class);
 
     private final String code;
-    private final String kernel;
     private final String filePath;
     private final String parserType;
     private final String task;
+    private final String kernelName;
 
     @DataBoundConstructor
-    public IPythonBuilder(String code, String kernel, String filePath, String parserType, String task) {
+    public IPythonBuilder(String code, String filePath, String parserType, String task, String kernelName) {
         this.code = code;
-        this.kernel = kernel;
         this.filePath = Util.fixEmptyAndTrim(filePath);
         this.parserType = parserType;
         this.task = task;
+        kernelName = Util.fixEmptyAndTrim(kernelName);
+        if (kernelName == null) {
+            // defaults to the first one
+            List<Server> sites = IPythonGlobalConfiguration.get().getServers();
+            if (!sites.isEmpty()) kernelName = sites.get(0).getKernel();
+        }
+        this.kernelName = kernelName;
     }
 
     @Override
@@ -81,14 +93,14 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
         try {
 
             // get the properties of the job
-            ServerJobProperty ipythonServerJobProperty = run.getParent().getProperty(ServerJobProperty.class);
-            String serverName = ipythonServerJobProperty.getServer().getServerName();
-            String serverAddress = ipythonServerJobProperty.getServer().getServerAddress();
-            long launchTimeout = ipythonServerJobProperty.getServer().getLaunchTimeoutInMilliSeconds();
-            long maxResults = ipythonServerJobProperty.getServer().getMaxResults();
-            listener.getLogger().println("Executed server : " + serverName.toUpperCase());
+            String serverName = getServer().getServerName();
+            String kernel = getServer().getKernel();
+            long launchTimeout = getServer().getLaunchTimeoutInMilliSeconds();
+            long maxResults = getServer().getMaxResults();
+            listener.getLogger().println("Executed kernel : " + kernel.toUpperCase());
+            listener.getLogger().println("Language : " + serverName.toUpperCase());
             // create configuration
-            IPythonUserConfig jobUserConfig = new IPythonUserConfig(serverAddress, launchTimeout, maxResults);
+            IPythonUserConfig jobUserConfig = new IPythonUserConfig(kernel, launchTimeout, maxResults);
             // Get the right channel to execute the code
             run.setResult(launcher.getChannel().call(new ExecutorImpl(ws, listener, jobUserConfig)));
 
@@ -96,6 +108,19 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
             e.printStackTrace(listener.getLogger());
             throw  new AbortException(e.getMessage());
         }
+    }
+
+    @Nullable
+    private Server getServer() {
+        List<Server> sites = IPythonGlobalConfiguration.get().getServers();
+
+        if (kernelName == null && sites.size() > 0) {
+            // default
+            return sites.get(0);
+        }
+        Stream<Server> streams = sites.stream();
+        return streams.filter(Server -> Server.getKernel().equals(kernelName))
+                .findFirst().orElse(null);
     }
 
     public String getCode() {
@@ -115,9 +140,8 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
         return task;
     }
 
-    @CheckForNull
-    public String getKernel() {
-        return kernel;
+    public String getKernelName() {
+        return kernelName;
     }
 
     public boolean isText() {
@@ -150,6 +174,19 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                 return FormValidation.warning("Task name is required to save the artifacts");
             return FormValidation.ok();
         }
+
+        public ListBoxModel doFillKernelNameItems(@AncestorInPath AbstractFolder<?> folder) {
+            ListBoxModel items = new ListBoxModel();
+            for (Server site : IPythonGlobalConfiguration.get().getServers()) {
+                items.add(site.getKernel());
+            }
+            if (folder != null) {
+                List<Server> serversFromFolder = ServerFolderProperty.getServersFromFolders(folder);
+                serversFromFolder.stream().map(Server::getKernel).forEach(items::add);
+            }
+            return items;
+        }
+
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
@@ -186,9 +223,9 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                 listener.getLogger().println("Type : " + parserType.toUpperCase());
                 listener.getLogger().println("Working directory : " + ws.getRemote());
                 // Change working directory as workspace directory
-                interpreterManager.invokeInterpreter("import os\nos.chdir('" + ws.getRemote() + "')","python", "test", ws);
+                interpreterManager.invokeInterpreter("import os\nos.chdir('" + ws.getRemote() + "')", "test", ws);
                 if (parserType.equals("text")) {
-                    listener.getLogger().println(interpreterManager.invokeInterpreter(code, kernel, task, ws));
+                    listener.getLogger().println(interpreterManager.invokeInterpreter(code, task, ws));
                 } else {
                     if (Util.fixEmptyAndTrim(filePath) != null) {
                         // Run builder on selected notebook
@@ -205,7 +242,7 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                         listener.getLogger().println("Output : ");
                         switch (ext) {
                             case ipynb:
-                                listener.getLogger().println((interpreterManager.invokeInterpreter(ConvertHelper.jupyterToText(tempFilePath), kernel, task, ws)));
+                                listener.getLogger().println((interpreterManager.invokeInterpreter(ConvertHelper.jupyterToText(tempFilePath), task, ws)));
                                 break;
                             case json:
                                 // Zeppelin note book or JSON file will be interpreted line by line
@@ -220,12 +257,12 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                                             JsonObject cell = element.getAsJsonObject();
                                             String code = cell.get("text").getAsString();
                                             listener.getLogger().println(code);
-                                            listener.getLogger().println(interpreterManager.invokeInterpreter(code, kernel, task, ws));
+                                            listener.getLogger().println(interpreterManager.invokeInterpreter(code, task, ws));
                                         }
                                 }
                                 break;
                             default:
-                                listener.getLogger().println(interpreterManager.invokeInterpreter(tempFilePath.readToString(), kernel, task, ws));
+                                listener.getLogger().println(interpreterManager.invokeInterpreter(tempFilePath.readToString(), task, ws));
                                 return Result.SUCCESS;
                         }
                     } else {

@@ -45,8 +45,6 @@ import static org.junit.Assert.assertTrue;
 
 public class FileParserTest {
 
-
-
   @Rule
   public JenkinsRule jenkins = new JenkinsRule();
 

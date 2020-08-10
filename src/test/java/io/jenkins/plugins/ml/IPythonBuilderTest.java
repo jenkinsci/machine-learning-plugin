@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class IPythonBuilderTest {
 
@@ -96,12 +95,12 @@ public class IPythonBuilderTest {
         configPage = jenkins.createWebClient().goTo("configure");
         project = jenkins.createFreeStyleProject();
         form = configPage.getFormByName("config");
-        IPythonServerGlobalConfigurationTest.getButton(form, "Add new Server")
+        IPythonServerGlobalConfigurationTest.getButton(form, "Add new Kernel")
                 .click();
         List<HtmlInput> serverName = form.getInputsByName("_.serverName");
-        serverName.get(0).setValueAttribute("localHost");
-        List<HtmlInput> serverAddress = form.getInputsByName("_.serverAddress");
-        serverAddress.get(0).setValueAttribute("127.0.0.1");
+        serverName.get(0).setValueAttribute("pyServer");
+        List<HtmlInput> kernel = form.getInputsByName("_.kernel");
+        kernel.get(0).setValueAttribute("python");
         List<HtmlInput> launchTimeout = form.getInputsByName("_.launchTimeout");
         launchTimeout.get(0).setValueAttribute("5");
         List<HtmlInput> maxResults = form.getInputsByName("_.maxResults");
@@ -123,13 +122,8 @@ public class IPythonBuilderTest {
     public void testAdditionBuild() throws Exception {
 
         Assume.assumeTrue(!Functions.isWindows());
-        ServerJobProperty ijj = new ServerJobProperty("localHost");
-        assertNotNull("Job property is null",ijj);
-        project.addProperty(ijj);
-        ServerJobProperty jobProp = project.getProperty(ServerJobProperty.class);
-        assertNotNull(jobProp);
 
-        IPythonBuilder builder = new IPythonBuilder("32+6", "python", " ", "text", "test");
+        IPythonBuilder builder = new IPythonBuilder("32+6", " ", "text", "test", "python");
         project.getBuildersList().add(builder);
 
         project.save();
@@ -140,20 +134,6 @@ public class IPythonBuilderTest {
         jenkins.assertBuildStatusSuccess(freeStyleBuild);
         jenkins.assertLogContains("38", freeStyleBuild);
 
-        /* TODO pipeline testings
-        p.setDefinition(
-        new CpsFlowDefinition(
-        "node{\n"
-        + "def testImage = docker.image('loghijiaha/ml-agent:latest')\n"
-        + "testImage.inside { \n"
-        + "ipythonBuilder code:'print(35+2)',filePath:'', parserType:'text', task: 'test'\n"
-        + "sh 'pip freeze'\n"
-        + "sh 'which python'\n"
-        + "}\n"
-        + "}",
-        false));
-        */
-
     }
 
     @Test
@@ -161,7 +141,7 @@ public class IPythonBuilderTest {
         String PROJECT_NAME = "demo";
         project = jenkins.createFreeStyleProject(PROJECT_NAME);
         // created a builder and added
-        IPythonBuilder builder = new IPythonBuilder("", "python", "train.py", "file", "test");
+        IPythonBuilder builder = new IPythonBuilder("", "train.py", "file", "test", "python");
         project.getBuildersList().add(builder);
 
         // configure web client

@@ -43,7 +43,7 @@ public class IPythonKernelInterpreter implements KernelInterpreter  {
      * Our logger
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(IPythonKernelInterpreter.class);
-    private final String serverGatewayAddress;
+    private final String kernel;
     private final long iPythonLaunchTimeout;
     private final long maxResult;
 
@@ -54,14 +54,14 @@ public class IPythonKernelInterpreter implements KernelInterpreter  {
      * @param userConfig - user's configuration including server address etc.
      */
     public IPythonKernelInterpreter(IPythonUserConfig userConfig) {
-        this.serverGatewayAddress = userConfig.getServerGatewayAddress();
+        this.kernel = userConfig.getkernel();
         this.iPythonLaunchTimeout = userConfig.getIPythonLaunchTimeout();
         this.maxResult = userConfig.getMaxResult();
 
         // properties for the interpreter
         Properties properties = new Properties();
         properties.setProperty("zeppelin.python.maxResult", String.valueOf(maxResult));
-        properties.setProperty("zeppelin.python.gatewayserver_address", serverGatewayAddress);
+        properties.setProperty("zeppelin.python.gatewayserver_address", "127.0.0.1");
         properties.setProperty("zeppelin.ipython.launch.timeout", String.valueOf(iPythonLaunchTimeout));
         properties.setProperty("zeppelin.py4j.useAuth","false");
 
@@ -77,9 +77,9 @@ public class IPythonKernelInterpreter implements KernelInterpreter  {
      * @return the list of result of the interpreted code
      */
     @Override
-    public List<InterpreterResultMessage> interpretCode(String code, String kernel) throws IOException, InterpreterException {
+    public List<InterpreterResultMessage> interpretCode(String code) throws IOException, InterpreterException {
         InterpreterResult result;
-        InterpreterContext context = getInterpreterContext(kernel);
+        InterpreterContext context = getInterpreterContext();
         result = interpreter.interpret(code, context);
         LOGGER.info(result.code().toString());
         List<InterpreterResultMessage> rst = context.out.toInterpreterResultMessage();
@@ -104,7 +104,7 @@ public class IPythonKernelInterpreter implements KernelInterpreter  {
         return "IPython Interpreter";
     }
 
-    private InterpreterContext getInterpreterContext(String kernel) {
+    private InterpreterContext getInterpreterContext() {
         Map<String, String> localProperties = new HashMap<>();
         localProperties.put("kernel", kernel);
         return InterpreterContext.builder()

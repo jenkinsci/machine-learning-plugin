@@ -40,8 +40,8 @@ public abstract class InterpreterManager implements Closeable {
     abstract void closeInterpreter();
     abstract boolean testConnection() throws IOException, InterpreterException;
 
-    protected String invokeInterpreter(String code, String kernel) throws IOException, InterpreterException {
+    protected String invokeInterpreter(String code) throws IOException, InterpreterException {
         KernelInterpreter kernelInterpreter = createInterpreter();
-        return kernelInterpreter.interpretCode(code, kernel).toString();
+        return kernelInterpreter.interpretCode(code).toString();
     }
 }

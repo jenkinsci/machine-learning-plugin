@@ -27,14 +27,8 @@
     <f:entry title="${%ML Task name}" field="task">
         <f:textbox name="task"/>
     </f:entry>
-    <f:entry title="${%Kernel}" field="kernel">
-        <select name="IPythonBuilder.kernel">
-            <option value="python" selected="${instance.kernel.equals('python')? 'true':null}">Python</option>
-            <option value="ir" selected="${instance.kernel.equals('ir')? 'true':null}">R</option>
-            <option value="julia-1.0" selected="${instance.kernel.equals('julia-1.0')? 'true':null}">Julia</option>
-            <option value="javascript" selected="${instance.kernel.equals('javascript')? 'true':null}">Javascript
-            </option>
-        </select>
+    <f:entry title="${%Language Kernel}" field="kernelName">
+        <f:select default="Select one Jupyter kernel"/>
     </f:entry>
     <f:section title="Choose input method" >
         <f:radioBlock name="parserType" value="text" checked='${instance.Text == true}' title="Text Parser"

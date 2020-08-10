@@ -25,10 +25,10 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
 
-    <f:entry title="Name" field="serverName">
+    <f:entry title="Name" field="kernel">
         <f:textbox />
     </f:entry>
-    <f:entry title="Server address" field="serverAddress">
+    <f:entry title="Language" field="serverName">
         <f:textbox  />
     </f:entry>
     <f:entry title="Launch timeout" field="launchTimeout">
@@ -39,7 +39,7 @@
     </f:entry>
     <f:entry>
         <f:validateButton title="${%Test connection}"
-                          method="validate" with="serverAddress,launchTimeout,maxResults" />
+                          method="validate" with="kernel,launchTimeout,maxResults"/>
     </f:entry>
     <f:entry title="">
         <div align="right">

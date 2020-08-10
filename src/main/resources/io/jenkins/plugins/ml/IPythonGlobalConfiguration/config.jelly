@@ -24,9 +24,9 @@
 
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <f:section title="Server Configuration">
-        <f:entry title="${%Servers}" description="" >
-            <f:repeatableProperty add="Add new Server" field="servers"/>
+    <f:section title="Kernel Configuration">
+        <f:entry title="${%Kernel}" description="">
+            <f:repeatableProperty add="Add new Kernel" field="servers"/>
         </f:entry>
     </f:section>
 </j:jelly>

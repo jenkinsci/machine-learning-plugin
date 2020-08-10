@@ -37,8 +37,8 @@ public class IPythonUserConfigTest {
 
     @Test
     public void testDefaultIPythonConfig() throws InterpreterException, IOException {
-        userConfig = new IPythonUserConfig("127.0.0.1",1000,3);
-        assertEquals("Server address not matched","127.0.0.1",userConfig.getServerGatewayAddress());
+        userConfig = new IPythonUserConfig("python", 1000, 3);
+        assertEquals("Kernel is not matching", "python", userConfig.getkernel());
         assertEquals("Timeout not matched",1000,userConfig.getIPythonLaunchTimeout());
         assertEquals("Max results not matched",3,userConfig.getMaxResult());
 

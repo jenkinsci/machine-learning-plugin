@@ -29,7 +29,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 public class IPythonUserConfig implements Serializable {
-    private final String serverGatewayAddress;
+    private final String kernel;
     private final long iPythonLaunchTimeout;
     private final long maxResult;
 
@@ -37,14 +37,14 @@ public class IPythonUserConfig implements Serializable {
      * Constructor for configuration
      */
 
-    public IPythonUserConfig(String serverGatewayAddress, long iPythonLaunchTimeout, long maxResult) {
-        this.serverGatewayAddress = serverGatewayAddress;
+    public IPythonUserConfig(String kernel, long iPythonLaunchTimeout, long maxResult) {
+        this.kernel = kernel;
         this.iPythonLaunchTimeout = iPythonLaunchTimeout;
         this.maxResult = maxResult;
     }
 
-    public String getServerGatewayAddress() {
-        return serverGatewayAddress;
+    public String getkernel() {
+        return kernel;
     }
 
     public long getIPythonLaunchTimeout() {
@@ -64,14 +64,14 @@ public class IPythonUserConfig implements Serializable {
             return false;
         }
         IPythonUserConfig userConfig = (IPythonUserConfig) o;
-        return serverGatewayAddress.equals(userConfig.getServerGatewayAddress()) &&
+        return kernel.equals(userConfig.getkernel()) &&
                 iPythonLaunchTimeout == userConfig.getIPythonLaunchTimeout() &&
                 maxResult == userConfig.getMaxResult();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(serverGatewayAddress,iPythonLaunchTimeout,maxResult);
+        return Objects.hash(kernel, iPythonLaunchTimeout, maxResult);
     }
 
 }

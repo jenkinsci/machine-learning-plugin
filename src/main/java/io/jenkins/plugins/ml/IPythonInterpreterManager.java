@@ -89,7 +89,7 @@ public class IPythonInterpreterManager extends InterpreterManager {
 
     @Override
     boolean testConnection() throws IOException, InterpreterException {
-        String result = kernelInterpreter.interpretCode("print(test)", "python").toString();
+        String result = kernelInterpreter.interpretCode("print(test)").toString();
         return result.contains("test");
     }
 
@@ -105,9 +105,9 @@ public class IPythonInterpreterManager extends InterpreterManager {
      * @throws IOException          the io exception
      * @throws InterruptedException the interrupted exception
      */
-    protected String invokeInterpreter(String code, String kernel, String task, FilePath workspace)
+    protected String invokeInterpreter(String code, String task, FilePath workspace)
             throws InterpreterException, IOException, InterruptedException {
-        List<InterpreterResultMessage> interpreterResultMessages = kernelInterpreter.interpretCode(code, kernel);
+        List<InterpreterResultMessage> interpreterResultMessages = kernelInterpreter.interpretCode(code);
         if (interpreterResultMessages == null) {
             LOGGER.info("Returning empty message for non-output code");
             return "";

@@ -24,13 +24,12 @@
 
 package io.jenkins.plugins.ml;
 
-import com.google.common.net.InetAddresses;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
-import hudson.model.Job;
 import hudson.util.FormValidation;
+import org.apache.zeppelin.interpreter.InterpreterException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
@@ -40,26 +39,22 @@ import java.util.regex.Pattern;
 
 public class Server extends AbstractDescribableImpl<Server> {
     private final String serverName;
-    private final String serverAddress;
+    private final String kernel;
     private final long launchTimeout;
     private final long maxResults;
 
     private static final Pattern pattern = Pattern.compile("^[a-zA-Z0-9_]+$");
 
     @DataBoundConstructor
-    public Server(String serverName, String serverAddress, long launchTimeout,long maxResults) {
+    public Server(String serverName, String kernel, long launchTimeout, long maxResults) {
         this.serverName = serverName;
-        this.serverAddress = serverAddress;
+        this.kernel = kernel;
         this.launchTimeout = launchTimeout;
         this.maxResults = maxResults;
     }
 
     public String getServerName() {
         return serverName;
-    }
-
-    public String getServerAddress() {
-        return serverAddress;
     }
 
     public long getLaunchTimeout() {
@@ -72,6 +67,10 @@ public class Server extends AbstractDescribableImpl<Server> {
 
     public long getMaxResults() {
         return maxResults;
+    }
+
+    public String getKernel() {
+        return kernel;
     }
 
     @Override
@@ -89,24 +88,13 @@ public class Server extends AbstractDescribableImpl<Server> {
 
         public FormValidation doCheckServerName(@QueryParameter String serverName) {
             if( Util.fixEmptyAndTrim(serverName) == null){
-                return FormValidation.warning("* Required ");
+                return FormValidation.warning("* Optional ");
             }
 
             if( pattern.matcher(serverName).matches() ){
                 return FormValidation.ok();
             }else{
-                return FormValidation.warning(" Try another name. Not supported",serverName);
-            }
-        }
-
-        public FormValidation doCheckServerAddress(@QueryParameter String serverAddress) {
-            if( Util.fixEmptyAndTrim(serverAddress) == null){
-                return FormValidation.warning("* Required ");
-            }
-            else if(InetAddresses.isInetAddress(serverAddress) || serverAddress.equalsIgnoreCase("localhost")){
-                return FormValidation.ok();
-            }else{
-                return FormValidation.error("Malformed IP address ", serverAddress);
+                return FormValidation.warning(" Try any valid name", serverName);
             }
         }
 
@@ -139,14 +127,14 @@ public class Server extends AbstractDescribableImpl<Server> {
          */
         @POST
         public FormValidation doValidate(
-                                         @QueryParameter String serverAddress,
-                                         @QueryParameter String launchTimeout,
-                                         @QueryParameter String maxResults
+                @QueryParameter String kernel,
+                @QueryParameter String launchTimeout,
+                @QueryParameter String maxResults
                                          ) throws Exception {
 
-            if(Util.fixEmptyAndTrim(serverAddress) != null) {
+            if (Util.fixEmptyAndTrim(kernel) != null) {
                 try{
-                    IPythonUserConfig userConfig = new IPythonUserConfig(serverAddress, Integer.parseInt(launchTimeout), Integer.parseInt(maxResults));
+                    IPythonUserConfig userConfig = new IPythonUserConfig(kernel, Integer.parseInt(launchTimeout), Integer.parseInt(maxResults));
                     try (InterpreterManager interpreterManager = new IPythonInterpreterManager(userConfig)) {
                         interpreterManager.initiateInterpreter();
                         if (interpreterManager.testConnection()) {
@@ -154,6 +142,8 @@ public class Server extends AbstractDescribableImpl<Server> {
                         } else {
                             return FormValidation.error("Connection failed");
                         }
+                    } catch (InterpreterException exception) {
+                        return FormValidation.error("No " + kernel + " kernel available");
                     }
                 } catch (NumberFormatException ex){
                     return FormValidation.error("Number/s is/are not valid ");
@@ -163,26 +153,5 @@ public class Server extends AbstractDescribableImpl<Server> {
         }
     }
 
-    /**
-     * Gets the {@link Server} associated with the given job.
-     *
-     * @param p job
-     * @return the Server configured for the job
-     * @throws RuntimeException throws if there is invalid job
-     *
-     */
-    public static Server get(Job<?, ?> p) {
-        if(p != null) {
-            ServerJobProperty ijp = p.getProperty(ServerJobProperty.class);
-            if (ijp != null) {
-                // Looks in global configuration for the server configured
-                Server server = ijp.getServer();
-                if (server != null) {
-                    return server;
-                }
-            }
-        }
-        throw new RuntimeException("Invalid job, failed to create IPython server");
-    }
 
 }
