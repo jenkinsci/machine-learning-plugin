@@ -37,13 +37,19 @@ import hudson.slaves.CommandLauncher;
 import hudson.slaves.DumbSlave;
 import hudson.slaves.SlaveComputer;
 import hudson.util.FormValidation;
+import io.jenkins.plugins.ml.model.ParsableFile;
 import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class IPythonBuilderTest {
 
@@ -167,6 +173,26 @@ public class IPythonBuilderTest {
         // check a non null input
         FormValidation result1 = descriptor.doCheckCode("print('HI')");
         assertEquals(result1.kind, FormValidation.Kind.OK);
+    }
+
+    @Test
+    public void testNotebook() throws IOException, ExecutionException, InterruptedException {
+        project = jenkins.createFreeStyleProject();
+        Path resourceDirectory = Paths.get("src", "test", "resources", "demo.ipynb");
+        String absolutePath = resourceDirectory.toFile().getAbsolutePath();
+        // parse file to workspace
+        ParsableFile mockFile = new ParsableFile(absolutePath, false, "NONE", null);
+        assertNotNull(mockFile);
+        ArrayList array = new ArrayList<>();
+        array.add(mockFile);
+        FileParser fParser = new FileParser(array);
+        project.getBuildWrappersList().add(fParser);
+        // created a builder and added
+        IPythonBuilder builder = new IPythonBuilder("", "demo.ipynb", "file", "test", "python");
+        project.getBuildersList().add(builder);
+        FreeStyleBuild build = project.scheduleBuild2(0).get();
+        jenkins.assertLogContains("Test score: 91.11", build);
+
     }
 
 }

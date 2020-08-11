@@ -60,4 +60,14 @@ public class ConvertHelperTest {
         assertTrue(text.contains("! git --version"));
     }
 
+    @Test
+    public void testRemoveMarkDown() throws IOException, InterruptedException {
+        Path resourceDirectory = Paths.get("src", "test", "resources", "JS.ipynb");
+        String absolutePath = resourceDirectory.toFile().getAbsolutePath();
+        FilePath file = new FilePath(new File(absolutePath));
+        assertNotNull(file);
+        String text = ConvertHelper.jupyterToText(file);
+        assertTrue(!text.startsWith("#"));
+    }
+
 }

@@ -25,7 +25,8 @@
 package io.jenkins.plugins.ml;
 
 import com.cloudbees.hudson.plugins.folder.AbstractFolder;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.*;
 import hudson.model.AbstractProject;
@@ -41,6 +42,7 @@ import jenkins.security.MasterToSlaveCallable;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.zeppelin.interpreter.InterpreterException;
 import org.apache.zeppelin.jupyter.zformat.Note;
+import org.apache.zeppelin.jupyter.zformat.Paragraph;
 import org.jenkinsci.Symbol;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -249,16 +251,15 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                                 try (final InputStreamReader inputStreamReader = new InputStreamReader(tempFilePath.read(), Charset.forName("UTF-8"))) {
                                     Gson gson = new GsonBuilder().create();
                                     Note n = gson.fromJson(inputStreamReader, Note.class);
-                                    JsonObject obj = gson.toJsonTree(n).getAsJsonObject();
-                                    JsonArray array = obj.get("paragraphs").getAsJsonArray();
-                                    for (JsonElement element : array)
-                                        if (element.isJsonObject()) {
-                                            // get each cell form the JSON element
-                                            JsonObject cell = element.getAsJsonObject();
-                                            String code = cell.get("text").getAsString();
-                                            listener.getLogger().println(code);
-                                            listener.getLogger().println(interpreterManager.invokeInterpreter(code, task, ws));
+                                    for (Paragraph para : n.getParagraphs()) {
+                                        // skipping markdowns
+                                        if (para.getConfig().get("editorMode").equals("ace/mode/markdown")) {
+                                            continue;
                                         }
+                                        String code = para.getText();
+                                        listener.getLogger().println(code);
+                                        listener.getLogger().println(interpreterManager.invokeInterpreter(code, task, ws));
+                                    }
                                 }
                                 break;
                             default:

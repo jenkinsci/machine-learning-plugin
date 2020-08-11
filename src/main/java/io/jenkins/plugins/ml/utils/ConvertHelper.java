@@ -31,6 +31,7 @@ import com.google.gson.JsonObject;
 import hudson.FilePath;
 import org.apache.zeppelin.jupyter.JupyterUtil;
 import org.apache.zeppelin.jupyter.zformat.Note;
+import org.apache.zeppelin.jupyter.zformat.Paragraph;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -51,17 +52,13 @@ public class ConvertHelper {
         // Convert Jupyter Notebook to JSON
         try (final InputStreamReader inputStreamReader = new InputStreamReader(jupyterFile.read(), Charset.forName("UTF-8"))) {
             Note n = new JupyterUtil().getNote(inputStreamReader, "python", "\n", "#");
-            Gson gson = new Gson();
-            JsonElement tree = gson.toJsonTree(n);
-            JsonObject obj = tree.getAsJsonObject();
-            JsonArray array = obj.get("paragraphs").getAsJsonArray();
             StringBuilder outText = new StringBuilder();
-            for (JsonElement element : array)
-                if (element.isJsonObject()) {
-                    JsonObject cell = element.getAsJsonObject();
-                    String code = cell.get("text").getAsString();
-                    outText.append(code);
-                }
+            for (Paragraph para : n.getParagraphs()) {
+                System.out.println(para.getText());
+                // skipping markdowns
+                if (para.getConfig().get("editorMode") == "ace/mode/markdown") continue;
+                outText.append(para.getText());
+            }
             return outText.toString();
         }
 
