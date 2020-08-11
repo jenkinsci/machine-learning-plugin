@@ -37,7 +37,7 @@ image:docs/images/jenkins-machine-learning-logo.png[]
 
 The main goal of this project is integrating Machine Learning workflow including Data preprocessing, Model Training, Evaluation and Prediction with Jenkins build tasks. This plugin is capable of executing code fragments via IPython kernel as currently supported by Jupyter.
 
-=== Using with Python 3
+=== Usage
 
 ==== Prerequisites
 
@@ -61,18 +61,14 @@ pip install grpcio
 > DEPRECATION: Python 2.7 reached the end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no longer maintained.
 
 ==== Configure IPython kernel
-* Name should be alphanumeric and contains only `_` as a special character
-* Language kernel name (Eg: python, ir, ijavascript etc)
+
+* Kernel language name (Eg: python, ir, javascript etc)
+* Language should be alphanumeric and contains only `_` as a special character (Optional)
 * Connection establishing timeout in seconds
-* Max number of data frame in rows
+* Max number of data frames in rows
 
 image:docs/images/global_config.png[configuration]
 
-==== Select server
-
-* Configured servers will be displayed in the job configuration
-
-image:docs/images/job_server.png[server]
 
 ==== Add Jupyter Notebooks
 
@@ -86,8 +82,9 @@ image:docs/images/file_parser.png[notebook]
 ==== Build Notebook
 
 * Choose a name for the Machine Leaning task folder (Eg: Training)
-* Use text editor to run python code directly
-* Use file path to run Jupyter Notebook or JSON
+* Choose the language kernel
+* Use text editor to run code directly
+* Use file path to run Jupyter Notebook or script file
 
 image:docs/images/file_builder.png[builder]
 
