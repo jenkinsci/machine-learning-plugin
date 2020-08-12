@@ -253,7 +253,7 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                                     Note n = gson.fromJson(inputStreamReader, Note.class);
                                     for (Paragraph para : n.getParagraphs()) {
                                         // skipping markdowns
-                                        if (para.getConfig().get("editorMode").equals("ace/mode/markdown")) {
+                                        if (para.getConfig().get("editorMode").equals(ConvertHelper.MARKDOWN_ANNOTATION)) {
                                             continue;
                                         }
                                         String code = para.getText();

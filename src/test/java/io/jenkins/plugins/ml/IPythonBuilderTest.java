@@ -32,24 +32,25 @@ import hudson.model.Computer;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.queue.QueueTaskFuture;
+import hudson.plugins.git.BranchSpec;
+import hudson.plugins.git.GitSCM;
+import hudson.plugins.git.SubmoduleConfig;
+import hudson.plugins.git.UserRemoteConfig;
+import hudson.plugins.git.extensions.GitSCMExtension;
 import hudson.remoting.VirtualChannel;
 import hudson.slaves.CommandLauncher;
 import hudson.slaves.DumbSlave;
 import hudson.slaves.SlaveComputer;
 import hudson.util.FormValidation;
-import io.jenkins.plugins.ml.model.ParsableFile;
+import org.jenkinsci.plugins.gitclient.JGitTool;
 import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class IPythonBuilderTest {
 
@@ -176,22 +177,27 @@ public class IPythonBuilderTest {
     }
 
     @Test
-    public void testNotebook() throws IOException, ExecutionException, InterruptedException {
-        project = jenkins.createFreeStyleProject();
-        Path resourceDirectory = Paths.get("src", "test", "resources", "demo.ipynb");
-        String absolutePath = resourceDirectory.toFile().getAbsolutePath();
-        // parse file to workspace
-        ParsableFile mockFile = new ParsableFile(absolutePath, false, "NONE", null);
-        assertNotNull(mockFile);
-        ArrayList array = new ArrayList<>();
-        array.add(mockFile);
-        FileParser fParser = new FileParser(array);
-        project.getBuildWrappersList().add(fParser);
+    public void testNotebook() throws Exception {
+
+        Assume.assumeTrue(!Functions.isWindows());
+        String repoURL = "https://github.com/Loghijiaha/simple-ml-pipeline-tutorial.git";
+        List<UserRemoteConfig> repos = new ArrayList<>();
+        repos.add(new UserRemoteConfig(repoURL, null, null, null));
+        List<BranchSpec> branchSpecs = Collections.singletonList(new BranchSpec("master"));
+        GitSCM scm = new GitSCM(
+                repos,
+                branchSpecs,
+                false, Collections.<SubmoduleConfig>emptyList(),
+                null, JGitTool.MAGIC_EXENAME,
+                Collections.<GitSCMExtension>emptyList());
+        project.setScm(scm);
         // created a builder and added
-        IPythonBuilder builder = new IPythonBuilder("", "demo.ipynb", "file", "test", "python");
+        IPythonBuilder builder = new IPythonBuilder("", "train_model.ipynb", "file", "notebook", "python");
         project.getBuildersList().add(builder);
+        project.save();
         FreeStyleBuild build = project.scheduleBuild2(0).get();
-        jenkins.assertLogContains("Test score: 91.11", build);
+        jenkins.assertBuildStatusSuccess(build);
+
 
     }
 

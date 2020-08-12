@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import hudson.AbortException;
 import hudson.FilePath;
 import org.apache.zeppelin.jupyter.JupyterUtil;
 import org.apache.zeppelin.jupyter.zformat.Note;
@@ -43,20 +44,27 @@ import java.util.List;
 public class ConvertHelper {
 
     /**
+     * Note is a Zeppelin formatted object which has paragraphs instead of cell when converting Jupyter notebooks. Paragraphs can be identified using config attribute as either contains
+     * markdown --> ace/mode/markdown or
+     * code  --> ace/mode/python
+     */
+    public static final String MARKDOWN_ANNOTATION = "ace/mode/markdown";
+
+    /**
      * @param jupyterFile Path for the jupyter notebook
      * @return Plain text which contains python code only
      * @throws IOException          when file path does not exist
      * @throws InterruptedException exception on input stream reading
      */
     public static String jupyterToText(FilePath jupyterFile) throws IOException, InterruptedException {
+        if (!jupyterFile.exists()) throw new AbortException("Invalid file");
         // Convert Jupyter Notebook to JSON
         try (final InputStreamReader inputStreamReader = new InputStreamReader(jupyterFile.read(), Charset.forName("UTF-8"))) {
             Note n = new JupyterUtil().getNote(inputStreamReader, "python", "\n", "#");
             StringBuilder outText = new StringBuilder();
             for (Paragraph para : n.getParagraphs()) {
-                System.out.println(para.getText());
                 // skipping markdowns
-                if (para.getConfig().get("editorMode") == "ace/mode/markdown") continue;
+                if (para.getConfig().get("editorMode").equals(MARKDOWN_ANNOTATION)) continue;
                 outText.append(para.getText());
             }
             return outText.toString();
