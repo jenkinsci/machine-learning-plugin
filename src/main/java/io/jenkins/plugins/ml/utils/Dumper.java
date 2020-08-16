@@ -38,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Random;
 
 /**
  * Dumper- A helping tool for save html or image files in the workspace
@@ -46,7 +47,7 @@ public final class Dumper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Dumper.class);
     private static final DateTimeFormatter FORMAT_OBJ = DateTimeFormatter.ofPattern("dd-MM-yyyy-hh-mm-ss");
-
+    private static final Random random = new Random(10000);
     private Dumper() {
     }
 
@@ -62,10 +63,10 @@ public final class Dumper {
     public static void dumpHtml(String data, String foldername, FilePath ws)
             throws IOException, InterruptedException {
         LocalDateTime dateObj = LocalDateTime.now();
-        String filename = File.separator + FORMAT_OBJ.format(dateObj) + ".html";
+        // Added a random number to save images which have same timestamp
+        String filename = File.separator + FORMAT_OBJ.format(dateObj) + random.nextInt() + ".html";
         FilePath dumpPath = new FilePath(ws, foldername + filename);
         dumpPath.write(data, "UTF-8");
-        LOGGER.info("Success");
     }
 
     /**
@@ -78,7 +79,8 @@ public final class Dumper {
      */
     public static void dumpImage(String data, String foldername, FilePath ws) throws IOException {
         LocalDateTime dateObj = LocalDateTime.now();
-        String filename = File.separator + FORMAT_OBJ.format(dateObj) + ".png";
+        // Added a random number to save images which have same timestamp
+        String filename = File.separator + FORMAT_OBJ.format(dateObj) + random.nextInt() + ".png";
         FilePath dumpPath = new FilePath(ws, foldername + filename);
         /* Decoding the data */
         byte[] imageBytes = DatatypeConverter.parseBase64Binary(data);
@@ -90,6 +92,5 @@ public final class Dumper {
             Files.createDirectories(Paths.get(imgFile.getParent()));
         }
         ImageIO.write(img, "png", imgFile);
-        LOGGER.info("Success");
   }
 }

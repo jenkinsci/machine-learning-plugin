@@ -62,6 +62,9 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * The type Python builder.
+ */
 public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -74,8 +77,18 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
     private final String task;
     private final String kernelName;
 
+    /**
+     * Instantiates a new Python builder.
+     *
+     * @param code       the code
+     * @param filePath   the file path
+     * @param parserType the parser type
+     * @param task       the task
+     * @param kernelName the kernel name
+     */
     @DataBoundConstructor
-    public IPythonBuilder(String code, String filePath, String parserType, String task, String kernelName) {
+    public IPythonBuilder(
+            String code, String filePath, String parserType, String task, String kernelName) {
         this.code = code;
         this.filePath = Util.fixEmptyAndTrim(filePath);
         this.parserType = parserType;
@@ -133,58 +146,129 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                 .findFirst().orElse(null);
     }
 
+    /**
+     * Gets code.
+     *
+     * @return the code
+     */
     public String getCode() {
         return code;
     }
+
+    /**
+     * Gets file path.
+     *
+     * @return the file path
+     */
     public String getFilePath() {
         return filePath;
     }
 
+    /**
+     * Gets parser type.
+     *
+     * @return the parser type
+     */
     @CheckForNull
     public String getParserType() {
         return parserType;
     }
 
+    /**
+     * Gets task.
+     *
+     * @return the task
+     */
     @CheckForNull
     public String getTask() {
         return task;
     }
 
+    /**
+     * Gets kernel name.
+     *
+     * @return the kernel name
+     */
     public String getKernelName() {
         return kernelName;
     }
 
+    /**
+     * Is text boolean.
+     *
+     * @return the boolean
+     */
     public boolean isText() {
         return parserType.equals("text");
     }
+
+    /**
+     * The enum File extension.
+     */
     enum FileExtension {
+        /**
+         * Ipynb file extension.
+         */
         ipynb,
+        /**
+         * Json file extension.
+         */
         json,
+        /**
+         * Txt file extension.
+         */
         txt
     }
 
+    /**
+     * The type Descriptor.
+     */
     @Symbol("ipythonBuilder")
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
+        /**
+         * Do check code form validation.
+         *
+         * @param code the code
+         * @return the form validation
+         */
         public FormValidation doCheckCode(@QueryParameter String code) {
             if (Util.fixEmptyAndTrim(code) == null)
                 return FormValidation.error("Code is empty");
             return FormValidation.ok();
         }
 
+        /**
+         * Do check file path form validation.
+         *
+         * @param filePath the file path
+         * @return the form validation
+         */
         public FormValidation doCheckFilePath(@QueryParameter String filePath) {
             if (Util.fixEmptyAndTrim(filePath) == null)
                 return FormValidation.warning("The file path is required to execute");
             return FormValidation.ok();
         }
 
+        /**
+         * Do check task form validation.
+         *
+         * @param task the task
+         * @return the form validation
+         */
         public FormValidation doCheckTask(@QueryParameter String task) {
             if (Util.fixEmptyAndTrim(task) == null)
                 return FormValidation.warning("Task name is required to save the artifacts");
             return FormValidation.ok();
         }
 
+        /**
+         * Do fill kernel name items list box model.
+         *
+         * @param folder the folder
+         * @return the list box model
+         */
         public ListBoxModel doFillKernelNameItems(@AncestorInPath AbstractFolder<?> folder) {
             ListBoxModel items = new ListBoxModel();
             for (Server site : IPythonGlobalConfiguration.get().getServers()) {
@@ -252,7 +336,13 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
                         listener.getLogger().println("Output : ");
                         switch (ext) {
                             case ipynb:
-                                listener.getLogger().println((interpreterManager.invokeInterpreter(ConvertHelper.jupyterToText(tempFilePath), task, ws)));
+                                /*
+                                  JENKINS-63213
+                                  interpret and save each images and html
+                                 */
+                                for (String line : ConvertHelper.jupyterToTextArray(tempFilePath)) {
+                                    listener.getLogger().println((interpreterManager.invokeInterpreter(line, task, ws)));
+                                }
                                 break;
                             case json:
                                 // Zeppelin note book or JSON file will be interpreted line by line

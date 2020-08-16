@@ -115,7 +115,6 @@ public class IPythonInterpreterManager extends InterpreterManager {
         boolean containsHTML = false;
         StringBuilder strTEXTBuild = new StringBuilder();
         StringBuilder strHTMLBuild = new StringBuilder();
-        LOGGER.info("Size of output", interpreterResultMessages.size());
         for (InterpreterResultMessage interpreterResultMessage : interpreterResultMessages) {
             switch (interpreterResultMessage.getType()) {
                 case HTML:
