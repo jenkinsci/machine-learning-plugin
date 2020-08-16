@@ -54,8 +54,7 @@ public class ResultAction implements RunAction2 {
      */
     public ResultAction(final Run<?, ?> run, final FilePath ws) {
         this.run = run;
-        this.path = new FilePath(ws, run.getId());
-
+        this.path = ws;
     }
 
     @CheckForNull
@@ -67,13 +66,13 @@ public class ResultAction implements RunAction2 {
     @CheckForNull
     @Override
     public String getDisplayName() {
-        return "Results";
+        return "Images and HTML";
     }
 
     @CheckForNull
     @Override
     public String getUrlName() {
-        return "results";
+        return "images_and_html";
     }
 
     /**
@@ -118,9 +117,7 @@ public class ResultAction implements RunAction2 {
      * @return the string
      */
     public String getHref() {
-        return "../../ws/" +
-                getBuildId() +
-                "/";
+        return "../../ws/";
     }
 
     /**

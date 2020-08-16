@@ -24,7 +24,7 @@
 
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:st="jelly:stapler">
-    <l:layout title="Greeting">
+    <l:layout title="Generated Image and HTML files">
         <l:side-panel>
             <st:include page="sidepanel.jelly" it="${it.run}" optional="true"/>
         </l:side-panel>
@@ -35,14 +35,14 @@
 
             <j:if test="${empty(it.imageFiles)  &amp;&amp; empty(it.htmlFiles) }">
                 <span>
-                    <h2 style="color:#FF0000;">No Image or HTML found</h2>
+                    <h2>No Image or HTML found</h2>
                 </span>
             </j:if>
             <ul>
                 <j:if test="${!empty(it.imageFiles) }">
                     <div>
                         <span>
-                            <h2 style="color:#0000FF;">Images</h2>
+                            <h2>Images</h2>
                         </span>
                         <j:forEach var="a" items="${it.imageFiles}" indexVar="indexA">
                             <j:if test="${ indexA ==0 }">
@@ -64,7 +64,7 @@
                 <j:if test="${!empty(it.htmlFiles) }">
                     <div>
                         <span>
-                            <h2 style="color:#0000FF;">HTMLs</h2>
+                            <h2>HTMLs</h2>
                         </span>
                         <j:forEach var="b" items="${it.htmlFiles}" indexVar="indexB">
                             <j:if test="${ indexB ==0 }">
