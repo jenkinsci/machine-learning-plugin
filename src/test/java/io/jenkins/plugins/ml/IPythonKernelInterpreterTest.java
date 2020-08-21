@@ -35,7 +35,7 @@ public class IPythonKernelInterpreterTest {
     private IPythonUserConfig userConfig;
     @Before
     public void setup(){
-        userConfig = new IPythonUserConfig("127.0.0.1",1000,3);
+        userConfig = new IPythonUserConfig("127.0.0.1",1000,3, ".");
         kernelInterpreter = new IPythonKernelInterpreter(userConfig);
     }
 

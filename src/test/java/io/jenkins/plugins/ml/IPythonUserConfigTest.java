@@ -37,7 +37,7 @@ public class IPythonUserConfigTest {
 
     @Test
     public void testDefaultIPythonConfig() throws InterpreterException, IOException {
-        userConfig = new IPythonUserConfig("python", 1000, 3);
+        userConfig = new IPythonUserConfig("python", 1000, 3, ".");
         assertEquals("Kernel is not matching", "python", userConfig.getkernel());
         assertEquals("Timeout not matched",1000,userConfig.getIPythonLaunchTimeout());
         assertEquals("Max results not matched",3,userConfig.getMaxResult());

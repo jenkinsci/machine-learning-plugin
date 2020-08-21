@@ -60,6 +60,7 @@ import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 /**
@@ -70,6 +71,8 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
     private static final long serialVersionUID = 1L;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IPythonBuilder.class);
+    private static final java.util.logging.Logger GRPC_IO_LOGGER = java.util.logging.Logger.getLogger("io.grpc.internal");
+    private static final Level GRPC_IO_LOGGER_ORIGINAL_LEVEL = GRPC_IO_LOGGER.getLevel();
 
     private final String code;
     private final String filePath;
@@ -105,6 +108,8 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
     @Override
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath ws, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws AbortException {
+        // Disable GRPC internal exceptions due to SEVERE log message when closing kernel interpreter
+        GRPC_IO_LOGGER.setLevel(Level.OFF);
         try {
             if (parserType.isEmpty() || task.isEmpty() || kernelName.isEmpty()) {
                 throw new AbortException("IPython builder is mis-configured ");
@@ -121,7 +126,7 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
             listener.getLogger().println("Executed kernel : " + kernel.toUpperCase());
             listener.getLogger().println("Language : " + serverName.toUpperCase());
             // create configuration
-            IPythonUserConfig jobUserConfig = new IPythonUserConfig(kernel, launchTimeout, maxResults);
+            IPythonUserConfig jobUserConfig = new IPythonUserConfig(kernel, launchTimeout, maxResults, ws.getRemote());
             // Get the right channel to execute the code
             run.setResult(launcher.getChannel().call(new ExecutorImpl(ws, listener, jobUserConfig)));
             ResultAction a = run.getAction(ResultAction.class);
@@ -131,11 +136,12 @@ public class IPythonBuilder extends Builder implements SimpleBuildStep, Serializ
             } else {
                 run.addAction(new ResultAction(run, ws));
             }
-
-
         } catch (Throwable e) {
             e.printStackTrace(listener.getLogger());
             throw  new AbortException(e.getMessage());
+        }
+        finally {
+            GRPC_IO_LOGGER.setLevel(GRPC_IO_LOGGER_ORIGINAL_LEVEL);
         }
     }
 

@@ -157,7 +157,7 @@ public class IPythonInterpreterManager extends InterpreterManager {
         try {
             kernelInterpreter.shutdown();
         } catch (InterpreterException e) {
-            e.printStackTrace();
+            LOGGER.trace("Failed to close interpreter", e);
         }
     }
 }

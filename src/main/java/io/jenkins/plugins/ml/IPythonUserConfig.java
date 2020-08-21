@@ -29,18 +29,21 @@ import java.io.Serializable;
 import java.util.Objects;
 
 public class IPythonUserConfig implements Serializable {
+    private static final long serialVersionUID = 7965902849225659175L;
     private final String kernel;
     private final long iPythonLaunchTimeout;
     private final long maxResult;
+    private final String workingDirectory;
 
     /**
      * Constructor for configuration
      */
 
-    public IPythonUserConfig(String kernel, long iPythonLaunchTimeout, long maxResult) {
+    public IPythonUserConfig(String kernel, long iPythonLaunchTimeout, long maxResult, String workingDirectory) {
         this.kernel = kernel;
         this.iPythonLaunchTimeout = iPythonLaunchTimeout;
         this.maxResult = maxResult;
+        this.workingDirectory = workingDirectory;
     }
 
     public String getkernel() {
@@ -55,6 +58,10 @@ public class IPythonUserConfig implements Serializable {
         return maxResult;
     }
 
+    public String getWorkingDirectory() {
+        return workingDirectory;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -66,12 +73,13 @@ public class IPythonUserConfig implements Serializable {
         IPythonUserConfig userConfig = (IPythonUserConfig) o;
         return kernel.equals(userConfig.getkernel()) &&
                 iPythonLaunchTimeout == userConfig.getIPythonLaunchTimeout() &&
-                maxResult == userConfig.getMaxResult();
+                maxResult == userConfig.getMaxResult() &&
+                workingDirectory == userConfig.getWorkingDirectory();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(kernel, iPythonLaunchTimeout, maxResult);
+        return Objects.hash(kernel, iPythonLaunchTimeout, maxResult, workingDirectory);
     }
 
 }

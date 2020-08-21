@@ -134,7 +134,7 @@ public class Server extends AbstractDescribableImpl<Server> {
 
             if (Util.fixEmptyAndTrim(kernel) != null) {
                 try{
-                    IPythonUserConfig userConfig = new IPythonUserConfig(kernel, Integer.parseInt(launchTimeout), Integer.parseInt(maxResults));
+                    IPythonUserConfig userConfig = new IPythonUserConfig(kernel, Integer.parseInt(launchTimeout), Integer.parseInt(maxResults), ".");
                     try (InterpreterManager interpreterManager = new IPythonInterpreterManager(userConfig)) {
                         interpreterManager.initiateInterpreter();
                         if (interpreterManager.testConnection()) {

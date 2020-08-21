@@ -44,6 +44,7 @@ public class IPythonKernelInterpreter implements KernelInterpreter  {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(IPythonKernelInterpreter.class);
     private final String kernel;
+    private final String workingDirectory;
     private final long iPythonLaunchTimeout;
     private final long maxResult;
 
@@ -55,6 +56,7 @@ public class IPythonKernelInterpreter implements KernelInterpreter  {
      */
     public IPythonKernelInterpreter(IPythonUserConfig userConfig) {
         this.kernel = userConfig.getkernel();
+        this.workingDirectory = userConfig.getWorkingDirectory();
         this.iPythonLaunchTimeout = userConfig.getIPythonLaunchTimeout();
         this.maxResult = userConfig.getMaxResult();
 
@@ -64,6 +66,9 @@ public class IPythonKernelInterpreter implements KernelInterpreter  {
         properties.setProperty("zeppelin.python.gatewayserver_address", "127.0.0.1");
         properties.setProperty("zeppelin.jupyter.kernel.launch.timeout", String.valueOf(iPythonLaunchTimeout));
         properties.setProperty("zeppelin.py4j.useAuth","false");
+
+        // HACK
+        properties.setProperty("jenkins.plugin.working.directory", userConfig.getWorkingDirectory());
 
         // Initiate a Lazy interpreter
         interpreter = new LazyOpenInterpreter(new JupyterInterpreter(properties));
