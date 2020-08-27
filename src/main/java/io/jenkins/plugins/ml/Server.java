@@ -35,6 +35,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.Nonnull;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 /**
@@ -47,7 +48,8 @@ public class Server extends AbstractDescribableImpl<Server> {
     private final long maxResults;
 
     private static final Pattern pattern = Pattern.compile("^[a-zA-Z0-9_]+$");
-
+    private static final java.util.logging.Logger GRPC_IO_LOGGER = java.util.logging.Logger.getLogger("io.grpc.internal");
+    private static Level GRPC_IO_LOGGER_ORIGINAL_LEVEL = GRPC_IO_LOGGER.getLevel();
     /**
      * Instantiates a new Server.
      *
@@ -197,6 +199,8 @@ public class Server extends AbstractDescribableImpl<Server> {
 
             if (Util.fixEmptyAndTrim(kernel) != null) {
                 try{
+                    // Disable GRPC internal exceptions due to SEVERE log message when closing kernel interpreter
+                    GRPC_IO_LOGGER.setLevel(Level.OFF);
                     IPythonUserConfig userConfig = new IPythonUserConfig(kernel, Integer.parseInt(launchTimeout)*1000, Integer.parseInt(maxResults), ".");
                     try (InterpreterManager interpreterManager = new IPythonInterpreterManager(userConfig)) {
                         interpreterManager.initiateInterpreter();
@@ -210,9 +214,11 @@ public class Server extends AbstractDescribableImpl<Server> {
                     }
                 } catch (NumberFormatException ex){
                     return FormValidation.error("Number/s is/are not valid ");
+                }finally {
+                    GRPC_IO_LOGGER.setLevel(GRPC_IO_LOGGER_ORIGINAL_LEVEL);
                 }
             }
-            return FormValidation.warning("Server address is required. Click on help for more info");
+            return FormValidation.warning("kernel name is required. Click on help for more info");
         }
     }
 

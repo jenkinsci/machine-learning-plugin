@@ -88,8 +88,9 @@ public class IPythonInterpreterManager extends InterpreterManager {
 
     @Override
     boolean testConnection() throws IOException, InterpreterException {
-        String result = kernelInterpreter.interpretCode("print(test)").toString();
-        return result.contains("test");
+        // Note : August 24 is the first release date
+        String result = kernelInterpreter.interpretCode("24").toString();
+        return result.contains("24");
     }
 
     /**
